@@ -25,14 +25,18 @@ jobs:
           version: 14
           platform: x64
 
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
+      - name: Cache Qt
+        uses: actions/cache@v3
         with:
-          version: 6.8.0
-          arch: gcc_64
-          cache: true
-          cache-key-prefix: ${{ runner.os }}-qt
-
+          path: $HOME/Qt
+          key: ${{ runner.os }}-qt-${{ hashFiles('**/requirements.txt') }}
+          
+      - name: Install Qt
+        if: steps.cache-qt.outputs.cache-hit != 'true'
+        run: |
+          pip install aqtinstall
+          aqt install-qt linux desktop 6.8.0 --outputdir $HOME/Qt --modules qtbase
+          
       - name: Setup CMake
         uses: lukka/get-cmake@latest
 
