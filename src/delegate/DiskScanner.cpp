@@ -1,6 +1,6 @@
 #include "DiskScanner.h"
 #include <QDir>
-#include <QDirListing>
+#include <QDirIterator>
 #include <QStandardPaths>
 
 DiskScanner::DiskScanner() {
@@ -22,9 +22,10 @@ void DiskScanner::addPath(const QString& path) {
 
     QStringList pendingPath;
     pendingPath.append(path);
-    using Flag = QDirListing::IteratorFlag;
-    for (const auto& dirEntry : QDirListing(path, Flag::DirsOnly | Flag::Recursive)) {
-        pendingPath.append(dirEntry.absoluteFilePath());
+
+    QDirIterator it(path, QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        pendingPath.append(it.next());
     }
 
     for (auto& path : pendingPath) {
@@ -38,7 +39,7 @@ void DiskScanner::addPath(const QString& path) {
 }
 
 void DiskScanner::addPaths(const QStringList& paths) {
-    for (auto path : paths) {
+    for (const auto& path : paths) {
         addPath(path);
     }
 }
@@ -50,9 +51,10 @@ void DiskScanner::removePath(const QString& path) {
 
     QStringList pendingPath;
     pendingPath.append(path);
-    using Flag = QDirListing::IteratorFlag;
-    for (const auto& dirEntry : QDirListing(path, Flag::DirsOnly | Flag::Recursive)) {
-        pendingPath.append(dirEntry.absoluteFilePath());
+
+    QDirIterator it(path, QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        pendingPath.append(it.next());
     }
 
     for (auto& path : pendingPath) {
@@ -68,7 +70,7 @@ void DiskScanner::removePath(const QString& path) {
 }
 
 void DiskScanner::removePaths(const QStringList& paths) {
-    for (auto path : paths) {
+    for (const auto& path : paths) {
         removePath(path);
     }
 }

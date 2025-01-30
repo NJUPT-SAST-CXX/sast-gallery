@@ -58,7 +58,7 @@ void GalleryWidget::onModelModelReset() {
 
 void GalleryWidget::onModelLayoutChanged(const QList<QPersistentModelIndex>& parents,
                                          QAbstractItemModel::LayoutChangeHint hint) {
-    qFatal() << "onModelLayoutChanged called";
+    qFatal("onModelLayoutChanged called");
     resetPreviewers();
 }
 
