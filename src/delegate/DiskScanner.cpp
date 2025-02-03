@@ -2,7 +2,6 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QStandardPaths>
-#include <qobject.h>
 
 DiskScanner::DiskScanner(QObject* parent)
     : QObject(parent) {

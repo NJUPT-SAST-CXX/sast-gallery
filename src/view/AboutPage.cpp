@@ -6,7 +6,6 @@
 #include <QClipboard>
 #include <QVBoxLayout>
 #include <Version.h>
-#include <qnamespace.h>
 
 AboutPage::AboutPage(QWidget* parent)
     : BasePage(parent) {
