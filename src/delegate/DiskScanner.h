@@ -2,7 +2,6 @@
 #include <QFileSystemWatcher>
 #include <QMap>
 #include <QObject>
-#include <qobject.h>
 
 // scan&watch media in specific path, and update ImageList
 
