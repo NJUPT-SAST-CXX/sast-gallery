@@ -2,8 +2,10 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QStandardPaths>
+#include <qobject.h>
 
-DiskScanner::DiskScanner() {
+DiskScanner::DiskScanner(QObject* parent)
+    : QObject(parent) {
     connect(&diskWatcher, &QFileSystemWatcher::directoryChanged, [this](const QString& path) {
         scanPath(path);
         submitChange();

@@ -2,6 +2,7 @@
 #include <QFileSystemWatcher>
 #include <QMap>
 #include <QObject>
+#include <qobject.h>
 
 // scan&watch media in specific path, and update ImageList
 
@@ -9,7 +10,7 @@ class DiskScanner : public QObject {
     Q_OBJECT
 
 public:
-    DiskScanner();
+    DiskScanner(QObject* parent = nullptr);
 
     // search path management
     // supposed to call scan() after:

@@ -14,7 +14,7 @@ class MediaViewerDelegate : public QObject {
 public:
     explicit MediaViewerDelegate(QAbstractItemModel* model,
                                  int index,
-                                 MediaViewer* window,
+                                 MediaViewer* viewer,
                                  QObject* parent = nullptr);
 
     [[nodiscard]] auto getFilePath() const { return filepath; }

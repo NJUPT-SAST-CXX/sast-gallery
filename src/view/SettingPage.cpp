@@ -35,14 +35,10 @@ SettingPage::SettingPage(QWidget* parent)
             });
     connect(eTheme, &ElaTheme::themeModeChanged, this, [=, this](ElaThemeType::ThemeMode themeMode) {
         themeComboBox->blockSignals(true);
-        if (themeMode == ElaThemeType::Light) {
-            themeComboBox->setCurrentIndex(0);
-        } else {
-            themeComboBox->setCurrentIndex(1);
-        }
+        themeComboBox->setCurrentIndex(themeMode);
         themeComboBox->blockSignals(false);
     });
-    themeComboBox->setCurrentIndex(settings.value("theme").toString() == "light" ? 0 : 1);
+    themeComboBox->setCurrentIndex(settings.value("theme").toString() == "dark");
 
     auto micaSwitchButton = new ElaToggleSwitch(this);
     auto micaSwitchArea = createScrollPageArea("Mica Effect", micaSwitchButton);
@@ -125,6 +121,6 @@ SettingPage::SettingPage(QWidget* parent)
     centerLayout->addWidget(wheelSwitchArea);
     centerLayout->addWidget(deletionSwitchArea);
     centerLayout->addStretch();
-    centerLayout->setContentsMargins(0, 0, 0, 0);
+    centerLayout->setContentsMargins(0, 0, 20, 0);
     addCentralWidget(centralWidget, true, true, 0);
 }

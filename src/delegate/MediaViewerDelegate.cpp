@@ -18,13 +18,13 @@
 
 MediaViewerDelegate::MediaViewerDelegate(QAbstractItemModel* model,
                                          int index,
-                                         MediaViewer* view,
+                                         MediaViewer* viewer,
                                          QObject* parent)
     : QObject(parent)
     , mediaListModel(model)
     , mediaIndex(model->index(index, MediaListModel::Path))
     , scalePercent(100)
-    , view(view) {
+    , view(viewer) {
     filepath = mediaIndex.data().value<QString>();
     loadImage(filepath);
 }
@@ -68,7 +68,7 @@ void MediaViewerDelegate::initConnections() {
             this,
             &MediaViewerDelegate::saveImageFileDialog);
 
-    //TODO(must):implement the openInFileExplorer functionality
+    //TODO(must): implement the openInFileExplorer functionality
     //connect(openInFileExplorerAction,......)
 
     connect(view->rotateAction, &QAction::triggered, this, &MediaViewerDelegate::rotateImage);
@@ -80,7 +80,7 @@ void MediaViewerDelegate::initConnections() {
     });
 
     connect(view->editAction, &QAction::triggered, this, [=]() {
-        //TODO(optional):implement the edit functionality
+        //TODO(optional): implement the edit functionality
     });
 
     connect(view->prevAction, &QAction::triggered, this, &MediaViewerDelegate::prevImage);
@@ -88,7 +88,7 @@ void MediaViewerDelegate::initConnections() {
     connect(view->nextAction, &QAction::triggered, this, &MediaViewerDelegate::nextImage);
 
     connect(view->likeButton, &ElaIconButton::clicked, this, [=]() {
-        //TODO(must):implement the like functionality
+        //TODO(must): implement the like functionality
         // add the image to Favorite Page
     });
 
@@ -357,14 +357,14 @@ void MediaViewerDelegate::rotateImage() {
     QTransform transform;
     transform.rotate(90);
     loadImage(image.transformed(transform), false);
-    QtConcurrent::run([this]() { this->image.save(filepath); });
+    auto _ [[maybe_unused]] = QtConcurrent::run([this]() { this->image.save(filepath); });
 }
 
 bool MediaViewerDelegate::loadImage(const QString& path, bool fadeAnimation) {
+    if (path.isEmpty()) {
+        return false;
+    }
     try {
-        if (path.isEmpty()) {
-            return false;
-        }
         QImage loaded(path);
         if (loaded.isNull()) {
             return false;
@@ -375,23 +375,23 @@ bool MediaViewerDelegate::loadImage(const QString& path, bool fadeAnimation) {
             return true;
         }
     } catch (...) {
-        return false;
     }
+    return false;
 }
 
 bool MediaViewerDelegate::loadImage(const QImage& image, bool fadeAnimation) {
+    if (image.isNull()) {
+        return false;
+    }
     try {
-        if (image.isNull()) {
-            return false;
-        }
         if (this->image.isNull() || this->image != image) {
             this->image = image;
             emit imageChanged(fadeAnimation);
             return true;
         }
     } catch (...) {
-        return false;
     }
+    return false;
 }
 
 void MediaViewerDelegate::scaleTo(int percent) {

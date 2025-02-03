@@ -6,6 +6,7 @@
 #include <QClipboard>
 #include <QVBoxLayout>
 #include <Version.h>
+#include <qnamespace.h>
 
 AboutPage::AboutPage(QWidget* parent)
     : BasePage(parent) {
@@ -41,7 +42,7 @@ AboutPage::AboutPage(QWidget* parent)
         createLinkArea("Repository", "https://github.com/NJUPT-SAST-CXX/sast-gallery"));
     centerLayout->addWidget(createLinkArea("Visit SAST", "https://sast.fun"));
     centerLayout->addStretch();
-    centerLayout->setContentsMargins(0, 0, 0, 0);
+    centerLayout->setContentsMargins(0, 0, 20, 0);
     addCentralWidget(centralWidget, true, true, 0);
 }
 
