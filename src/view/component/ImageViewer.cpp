@@ -1,7 +1,6 @@
 #include "ImageViewer.h"
 #include <QGraphicsOpacityEffect>
 #include <QPropertyAnimation>
-#include <qgraphicsview.h>
 
 ImageViewer::ImageViewer(QWidget* parent)
     : QGraphicsView(parent)
@@ -80,6 +79,7 @@ void ImageViewer::mouseReleaseEvent(QMouseEvent* event) {
 void ImageViewer::resizeEvent(QResizeEvent* event) {
     QGraphicsView::resizeEvent(event);
     adjustImageToFit();
+    emit resized();
 }
 
 void ImageViewer::wheelEvent(QWheelEvent* event) {

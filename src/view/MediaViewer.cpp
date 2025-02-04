@@ -27,6 +27,8 @@ void MediaViewer::initWindow() {
 
 void MediaViewer::initContent() {
     auto* mainLayout = new QVBoxLayout(this);
+    auto* middleAreaLayout = new QHBoxLayout(this);
+    auto* mainMiddleAreaLayout = new QVBoxLayout(this);
 
     // Create menu bar
     auto* menuBar = new ElaMenuBar(this);
@@ -55,10 +57,17 @@ void MediaViewer::initContent() {
     // image view
     imageViewer = new ImageViewer(QPixmap::fromImage(delegate->getImage()), this);
 
+    // file info widget
+    fileInfoWidget = new FileInfoWidget(this);
+    fileInfoWidget->loadInfo(delegate->getFilePath());
+    fileInfoWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    fileInfoWidget->setFixedWidth(0);
+    fileInfoWidget->hide();
+
     // Create buttons
     QHBoxLayout* operationLayout = new QHBoxLayout(this);
 
-    likeButton = new ElaIconButton(ElaIconType::Heart);
+    likeButton = new ElaIconButton(ElaIconType::Heart, this);
     likeButton->setMaximumWidth(25);
 
     fileInfoButton = new ElaIconButton(ElaIconType::CircleInfo);
@@ -113,25 +122,14 @@ void MediaViewer::initContent() {
     operationLayout->addWidget(maximizeButton);
     operationLayout->addWidget(zoom2originalButton);
 
+    mainMiddleAreaLayout->addWidget(imageViewer);
+    mainMiddleAreaLayout->addLayout(operationLayout);
+
+    middleAreaLayout->addLayout(mainMiddleAreaLayout);
+    middleAreaLayout->addWidget(fileInfoWidget);
+
     // Main Layout
     mainLayout->addWidget(menuBar);
-    mainLayout->addWidget(imageViewer);
-    mainLayout->addLayout(operationLayout);
+    mainLayout->addLayout(middleAreaLayout);
     mainLayout->setAlignment(Qt::AlignTop);
-
-    // show actions status tips when pointing at them
-    openFileAction->setStatusTip("Open a file");
-    copyFileAction->setStatusTip("Copy a file");
-    saveFileAction->setStatusTip("Save a file as");
-    openInFileExplorerAction->setStatusTip("Open the file in File Explorer");
-    rotateAction->setStatusTip("Rotate the image");
-    deleteAction->setStatusTip("Delete the image");
-    printAction->setStatusTip("Print the image");
-    editAction->setStatusTip("Edit the image");
-    likeButton->setStatusTip("Like the image");
-    fileInfoButton->setStatusTip("Show file info");
-    zoomInButton->setStatusTip("Zoom in");
-    zoomOutButton->setStatusTip("Zoom out");
-    maximizeButton->setStatusTip("Fullscreen");
-    zoom2originalButton->setStatusTip("Zoom to original size");
 }

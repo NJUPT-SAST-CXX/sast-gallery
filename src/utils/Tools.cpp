@@ -1,5 +1,6 @@
 #include "Tools.h"
 #include <QFileInfo>
+#include <QImage>
 #include <array>
 
 QString Tools::fileSizeString(QString filepath) {
@@ -15,4 +16,16 @@ QString Tools::fileSizeString(QString filepath) {
         size = static_cast<int>(size * 10) / 10.0;
     }
     return QString("%1 %2").arg(QString::number(size), unit[index]);
+}
+
+int Tools::imageBitDepth(const QImage& image) {
+    if (image.isNull()) {
+        return 0;
+    }
+    int bitDepth = image.depth();
+    if (bitDepth == 32 && !image.hasAlphaChannel()) {
+        bitDepth = 24;
+    }
+    // 16-bit and 8-bit may not work well
+    return bitDepth;
 }

@@ -3,7 +3,6 @@
 #include <QGraphicsPixmapItem>
 #include <QGraphicsView>
 #include <QMouseEvent>
-#include <qtmetamacros.h>
 
 class ImageViewer : public QGraphicsView {
     Q_OBJECT
@@ -16,6 +15,7 @@ public:
 
 signals:
     void wheelScrolled(int delta);
+    void resized();
 
 protected:
     void mousePressEvent(QMouseEvent* event) override;

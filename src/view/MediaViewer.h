@@ -1,5 +1,6 @@
 #pragma once
 
+#include "component/FileInfoWidget.h"
 #include "component/ImageViewer.h"
 #include <ElaIconButton.h>
 #include <ElaSlider.h>
@@ -41,6 +42,7 @@ private:
     ElaIconButton* zoom2originalButton{};
     ElaText* fileInfoBriefText{};
     ImageViewer* imageViewer;
+    FileInfoWidget* fileInfoWidget{};
 
     MediaViewerDelegate* delegate{};
 };
