@@ -31,8 +31,12 @@ signals:
 
 public slots:
     void loadImageComplete();
+    void openMediaViewer();
 
 private:
+    QAbstractItemModel* model;
+    int rowIndex;
+
     QString filepath;
     QDateTime lastModified;
     bool isFav;

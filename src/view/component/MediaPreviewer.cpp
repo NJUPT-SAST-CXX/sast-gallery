@@ -1,4 +1,5 @@
 #include "MediaPreviewer.h"
+#include "..\MediaViewer.h"
 #include <QImageReader>
 #include <QPainter>
 #include <QPainterPath>
@@ -7,7 +8,9 @@
 #include <model/MediaListModel.h>
 
 MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget* parent)
-    : QLabel(parent) {
+    : QLabel(parent)
+    , model(model)
+    , rowIndex(rowIndex) {
     filepath = model->data(model->index(rowIndex, MediaListModel::Path)).value<QString>();
     lastModified = model->data(model->index(rowIndex, MediaListModel::LastModifiedTime))
                        .value<QDateTime>();
@@ -20,6 +23,7 @@ MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget*
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     initMedia();
     // TODO: open the image in a MediaViewer window when double clicked
+    connect(this, &MediaPreviewer::doubleClicked, this, &MediaPreviewer::openMediaViewer);
 }
 
 MediaPreviewer::~MediaPreviewer() {}
@@ -145,4 +149,9 @@ void MediaPreviewer::scaleAnimation(qreal startScale, qreal endScale, int durati
         }
     });
     animation->start(QAbstractAnimation::DeleteWhenStopped);
+}
+
+void MediaPreviewer::openMediaViewer() {
+    MediaViewer* viewer = new MediaViewer(model, rowIndex, nullptr);
+    viewer->show();
 }
