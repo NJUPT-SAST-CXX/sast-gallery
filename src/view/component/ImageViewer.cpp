@@ -6,7 +6,10 @@ ImageViewer::ImageViewer(QWidget* parent)
     : QGraphicsView(parent)
     , scene(new QGraphicsScene(this))
     , pixmapItem(new QGraphicsPixmapItem())
-    , dragging(false) {
+    , dragging(false)
+    , cntScale(100)
+    , minScale(1)
+    , maxScale(800) {
     setScene(scene);
     scene->addItem(pixmapItem);
     setRenderHint(QPainter::Antialiasing);
@@ -44,10 +47,49 @@ void ImageViewer::setContent(const QPixmap& pixmap, bool fadeAnimation) {
     pixmapItem->setPixmap(pixmap);
     adjustImageToFit();
     animation->start(QPropertyAnimation::DeleteWhenStopped);
+    cntScale = 100;
 }
 
 void ImageViewer::setContent(const QImage& image, bool fadeAnimation) {
     setContent(QPixmap::fromImage(image), fadeAnimation);
+}
+
+int ImageViewer::getScale() const {
+    return cntScale;
+}
+
+int ImageViewer::getMinScale() const {
+    return minScale;
+}
+
+int ImageViewer::getMaxScale() const {
+    return maxScale;
+}
+
+void ImageViewer::setMinScale(int scale) {
+    if (scale < 1) {
+        minScale = 1;
+    } else if (scale > maxScale) {
+        minScale = maxScale;
+    }
+}
+
+void ImageViewer::setMaxScale(int scale) {
+    if (scale < minScale) {
+        scale = minScale;
+    }
+    maxScale = scale;
+}
+
+void ImageViewer::scaleTo(int scale) {
+    if (scale < minScale) {
+        scale = minScale;
+    } else if (scale > maxScale) {
+        scale = maxScale;
+    }
+    const double scaleFactor = static_cast<double>(scale) / cntScale;
+    this->scale(scaleFactor, scaleFactor);
+    cntScale = scale;
 }
 
 void ImageViewer::mousePressEvent(QMouseEvent* event) {
@@ -78,8 +120,12 @@ void ImageViewer::mouseReleaseEvent(QMouseEvent* event) {
 
 void ImageViewer::resizeEvent(QResizeEvent* event) {
     QGraphicsView::resizeEvent(event);
+    auto viewCenter = mapToScene(viewport()->rect().center());
+    int cntScalePercent = cntScale;
     adjustImageToFit();
-    emit resized();
+    centerOn(viewCenter);
+    cntScale = 100;
+    scaleTo(cntScalePercent);
 }
 
 void ImageViewer::wheelEvent(QWheelEvent* event) {

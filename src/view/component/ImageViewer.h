@@ -13,6 +13,13 @@ public:
     void setContent(const QPixmap& pixmap, bool fadeAnimation = true);
     void setContent(const QImage& image, bool fadeAnimation = true);
 
+    [[nodiscard]] int getScale() const;
+    [[nodiscard]] int getMinScale() const;
+    [[nodiscard]] int getMaxScale() const;
+    void setMinScale(int scale);
+    void setMaxScale(int scale);
+    void scaleTo(int scale);
+
 signals:
     void wheelScrolled(int delta);
     void resized();
@@ -29,6 +36,9 @@ private:
     QGraphicsPixmapItem* pixmapItem;
     QPoint lastMousePos;
     bool dragging;
+    int cntScale;
+    int minScale;
+    int maxScale;
 
     void adjustImageToFit();
 };

@@ -52,7 +52,7 @@ void MainWindow::initModel() {
     favoriteModel->setFilterKeyColumn(MediaListModel::IsFavorite);
     favoriteModel->setFilterFixedString("true");
 
-    diskScanner = new DiskScanner(this);
+    diskScanner = new DiskScanner();
     // clang-format off
     QObject::connect(diskScanner, &DiskScanner::fileCreated, mediaModel, &MediaListModel::appendEntries);
     QObject::connect(diskScanner, &DiskScanner::fileDeleted, mediaModel, &MediaListModel::removeEntries);
