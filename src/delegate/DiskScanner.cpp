@@ -1,8 +1,12 @@
 #include "DiskScanner.h"
+#include <QDateTime>
+#include <QDebug>
 #include <QDir>
 #include <QDirIterator>
+#include <QFileInfo>
 #include <QStandardPaths>
 
+// TODO: add filter
 DiskScanner::DiskScanner(QObject* parent)
     : QObject(parent) {
     connect(&diskWatcher, &QFileSystemWatcher::directoryChanged, [this](const QString& path) {
@@ -100,16 +104,26 @@ void DiskScanner::scanPath(const QString& path, bool fullScan) {
     qDebug() << "DiskScanner: scaning " << path;
     QStringList oldCache = fullScan ? QStringList{} : cache.value(path);
     QStringList newCache;
+    //QMap<QString, QDateTime> newModifiedTimes;
     auto&& entryInfoList = QDir(path).entryInfoList(mediaFileFilter,
                                                     QDir::Files | QDir::NoDotAndDotDot);
     for (auto& entry : entryInfoList) {
         newCache += entry.absoluteFilePath();
+        //newModifiedTimes.insert(entry.absoluteFilePath(), entry.lastModified());
     }
     cache.insert(path, newCache);
 
     auto&& [added, removed] = diff(oldCache, newCache);
     pendingCreated += added;
     pendingDeleted += removed;
+
+    /*//Check for modified files
+    for (const auto& filePath : oldCache) {
+        if (newModifiedTimes.contains(filePath)
+            && newModifiedTimes[filePath] != QFileInfo(filePath).lastModified()) {
+            pendingModified += filePath;
+        }
+    }*/
 }
 
 void DiskScanner::submitChange(bool fullScan) {
@@ -117,6 +131,7 @@ void DiskScanner::submitChange(bool fullScan) {
         emit DiskScanner::fullScan(pendingCreated);
         pendingCreated.clear();
         pendingDeleted.clear();
+        pendingModified.clear();
         return;
     }
     if (pendingCreated.size() != 0) {
@@ -126,6 +141,10 @@ void DiskScanner::submitChange(bool fullScan) {
     if (pendingDeleted.size() != 0) {
         emit fileDeleted(pendingDeleted);
         pendingDeleted.clear();
+    }
+    if (pendingModified.size() != 0) {
+        emit fileModified(pendingModified);
+        pendingModified.clear();
     }
 }
 

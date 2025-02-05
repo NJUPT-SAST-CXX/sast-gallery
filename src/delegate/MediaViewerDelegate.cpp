@@ -67,7 +67,7 @@ void MediaViewerDelegate::initConnections() {
             this,
             &MediaViewerDelegate::saveImageFileDialog);
 
-    //TODO(must): implement the openInFileExplorer functionality
+    //TODO(must): implement the openInFileExplorer functionality (checked)
     connect(view->openInFileExplorerAction,
             &QAction::triggered,
             this,

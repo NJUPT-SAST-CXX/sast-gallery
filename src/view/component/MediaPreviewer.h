@@ -1,5 +1,6 @@
 #pragma once
 
+#include ".\delegate\DiskScanner.h"
 #include <QAbstractItemModel>
 #include <QDateTime>
 #include <QEvent>
@@ -10,6 +11,8 @@
 // display media in thumbnail, supposed to be work with ImageFlexLayout
 class MediaPreviewer : public QLabel {
     Q_OBJECT
+    //DiskScanner* diskScanner;
+
 public:
     explicit MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget* parent = nullptr);
     ~MediaPreviewer();
@@ -32,6 +35,7 @@ signals:
 public slots:
     void loadImageComplete();
     void openMediaViewer();
+    //void onFileModified(const QStringList& paths); // file modified signal
 
 private:
     QAbstractItemModel* model;

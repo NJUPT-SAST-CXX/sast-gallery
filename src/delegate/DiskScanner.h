@@ -34,7 +34,7 @@ signals:
     void fullScan(const QStringList& filePath);
     void fileCreated(const QStringList& filePath);
     void fileDeleted(const QStringList& filePath);
-    void fileModified(const QStringList& filePath); // TODO: detect file modified
+    void fileModified(const QStringList& filePath); // TODO: detect file modified (checked)
 
 private:
     bool initScanComplete = true;
@@ -54,7 +54,7 @@ private:
     void scanPath(const QString& path, bool fullScan = false);
 
     // work with scan() and scanPath(), as scan cache
-    QStringList pendingCreated, pendingDeleted;
+    QStringList pendingCreated, pendingDeleted, pendingModified;
     void submitChange(bool fullScan = false);
 
     // QDir name filter

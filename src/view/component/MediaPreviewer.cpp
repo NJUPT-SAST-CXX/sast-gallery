@@ -1,5 +1,6 @@
 #include "MediaPreviewer.h"
 #include "..\MediaViewer.h"
+#include ".\delegate\DiskScanner.h"
 #include <QImageReader>
 #include <QPainter>
 #include <QPainterPath>
@@ -24,6 +25,7 @@ MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget*
     initMedia();
     // TODO: reload preview when photo is modified
     connect(this, &MediaPreviewer::doubleClicked, this, &MediaPreviewer::openMediaViewer);
+    //connect(diskScanner, &DiskScanner::fileModified, this, &MediaPreviewer::onFileModified);
 }
 
 MediaPreviewer::~MediaPreviewer() {}
@@ -155,3 +157,11 @@ void MediaPreviewer::openMediaViewer() {
     MediaViewer* viewer = new MediaViewer(model, rowIndex, nullptr);
     viewer->show();
 }
+
+/*void MediaPreviewer::onFileModified(const QStringList& paths) {
+    for (const QString& path : paths) {
+        if (path == this->filepath) {
+            initMedia();
+        }
+    }
+}*/

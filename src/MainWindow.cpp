@@ -2,6 +2,7 @@
 #include "delegate/DiskScanner.h"
 #include "model/MediaListModel.h"
 #include "utils/Settings.hpp"
+#include "view/component/MediaPreviewer.h"
 
 MainWindow::MainWindow(QWidget* parent)
     : ElaWindow(parent) {
@@ -38,6 +39,12 @@ void MainWindow::initContent() {
     settingPage = new SettingPage(this);
     QString settingPageKey;
     addFooterNode("Setting", settingPage, settingPageKey, 0, ElaIconType::GearComplex);
+
+    /*// previews
+    for (int i = 0; i < galleryModel->rowCount(); ++i) {
+        MediaPreviewer* previewer = new MediaPreviewer(galleryModel, i, this);
+        previewers.append(previewer);
+    }*/
 }
 
 void MainWindow::initModel() {
@@ -58,6 +65,17 @@ void MainWindow::initModel() {
     QObject::connect(diskScanner, &DiskScanner::fileDeleted, mediaModel, &MediaListModel::removeEntries);
     QObject::connect(diskScanner, &DiskScanner::fileModified, mediaModel, &MediaListModel::modifiedEntries);
     QObject::connect(diskScanner, &DiskScanner::fullScan, mediaModel, &MediaListModel::resetEntries);
+    //QObject::connect(diskScanner, &DiskScanner::fileModified, this, &MainWindow::onFileModified);
     // clang-format on
     diskScanner->scan();
 }
+
+/*void MainWindow::onFileModified(const QStringList& paths) {
+    for (const QString& path : paths) {
+        for (MediaPreviewer* previewer : previewers) {
+            if (previewer->path() == path) {
+                previewer->onFileModified(QStringList(path)); // 将 QString 转换为 QStringList
+            }
+        }
+    }
+}*/
