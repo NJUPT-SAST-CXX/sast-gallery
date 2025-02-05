@@ -68,7 +68,10 @@ void MediaViewerDelegate::initConnections() {
             &MediaViewerDelegate::saveImageFileDialog);
 
     //TODO(must): implement the openInFileExplorer functionality
-    //connect(openInFileExplorerAction,......)
+    connect(view->openInFileExplorerAction,
+            &QAction::triggered,
+            this,
+            &MediaViewerDelegate::openInFileExplorer);
 
     connect(view->rotateAction, &QAction::triggered, this, &MediaViewerDelegate::rotateImage);
 
@@ -357,4 +360,9 @@ void MediaViewerDelegate::scaleTo(int percent) {
 
 int MediaViewerDelegate::getScale() const {
     return view->imageViewer->getScale();
+}
+
+void MediaViewerDelegate::openInFileExplorer() {
+    QString command = "explorer.exe /select, \"" + filepath + "\"";
+    QProcess::startDetached(command);
 }

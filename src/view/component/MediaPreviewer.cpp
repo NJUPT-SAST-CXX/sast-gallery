@@ -22,7 +22,7 @@ MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget*
     setScaledContents(true);
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     initMedia();
-    // TODO: open the image in a MediaViewer window when double clicked
+    // TODO: reload preview when photo is modified
     connect(this, &MediaPreviewer::doubleClicked, this, &MediaPreviewer::openMediaViewer);
 }
 
