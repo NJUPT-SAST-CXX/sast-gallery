@@ -44,7 +44,7 @@ void MediaViewerDelegate::initConnections() {
                                  "Error",
                                  "Image failed to load",
                                  3000,
-                                 view);
+                                 view->imageViewer);
         }
         loadImage(this->image);
         QScreen* screen = QGuiApplication::primaryScreen();
@@ -172,12 +172,20 @@ void MediaViewerDelegate::onWheelScrolled(int delta) {
 
 bool MediaViewerDelegate::copyImageToClipboard() {
     if (this->image.isNull()) {
-        ElaMessageBar::error(ElaMessageBarType::Bottom, "Null Image!", nullptr, 2000);
+        ElaMessageBar::error(ElaMessageBarType::Bottom,
+                             "Null Image!",
+                             nullptr,
+                             2000,
+                             view->imageViewer);
         return false;
     } else {
         QClipboard* clipboard = QApplication::clipboard();
         clipboard->setImage(this->image);
-        ElaMessageBar::success(ElaMessageBarType::Bottom, "Copied!", nullptr, 2000);
+        ElaMessageBar::success(ElaMessageBarType::Bottom,
+                               "Copied!",
+                               nullptr,
+                               2000,
+                               view->imageViewer);
         return true;
     }
 }
@@ -278,17 +286,33 @@ void MediaViewerDelegate::deleteImage() {
         });
         connect(confirmDialog, &ElaContentDialog::rightButtonClicked, this, [=, this]() {
             if (!QFile(filepath).remove()) {
-                ElaMessageBar::error(ElaMessageBarType::Bottom, "Delete failed!", nullptr, 2000);
+                ElaMessageBar::error(ElaMessageBarType::Bottom,
+                                     "Delete failed!",
+                                     nullptr,
+                                     2000,
+                                     view->imageViewer);
             } else {
-                ElaMessageBar::success(ElaMessageBarType::Bottom, "Deleted!", nullptr, 2000);
+                ElaMessageBar::success(ElaMessageBarType::Bottom,
+                                       "Deleted!",
+                                       nullptr,
+                                       2000,
+                                       view->imageViewer);
             }
         });
         confirmDialog->exec();
     } else {
         if (!QFile(filepath).remove()) {
-            ElaMessageBar::error(ElaMessageBarType::Bottom, "Delete failed!", nullptr, 2000);
+            ElaMessageBar::error(ElaMessageBarType::Bottom,
+                                 "Delete failed!",
+                                 nullptr,
+                                 2000,
+                                 view->imageViewer);
         } else {
-            ElaMessageBar::success(ElaMessageBarType::Bottom, "Deleted!", nullptr, 2000);
+            ElaMessageBar::success(ElaMessageBarType::Bottom,
+                                   "Deleted!",
+                                   nullptr,
+                                   2000,
+                                   view->imageViewer);
         }
     }
 }

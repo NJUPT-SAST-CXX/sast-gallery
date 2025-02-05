@@ -62,6 +62,7 @@ void MediaViewer::initContent() {
     fileInfoWidget->loadInfo(delegate->getFilePath());
     fileInfoWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     fileInfoWidget->setFixedWidth(0);
+    fileInfoWidget->setMessageBarParent(imageViewer);
     fileInfoWidget->hide();
 
     // Create buttons

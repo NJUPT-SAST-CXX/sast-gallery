@@ -14,7 +14,8 @@
 #include <QVBoxLayout>
 
 FileInfoWidget::FileInfoWidget(QWidget* parent)
-    : QWidget(parent) {
+    : QWidget(parent)
+    , messageBarParent(parent) {
     auto* mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(20, 20, 20, 20);
 
@@ -49,7 +50,7 @@ FileInfoWidget::FileInfoWidget(QWidget* parent)
     filePathLayout->addWidget(copyButton);
     connect(copyButton, &ElaIconButton::clicked, [this] {
         QApplication::clipboard()->setText(pathText->text());
-        ElaMessageBar::success(ElaMessageBarType::BottomRight, "Copied!", nullptr, 2000);
+        ElaMessageBar::success(ElaMessageBarType::Bottom, "Copied!", nullptr, 2000, messageBarParent);
     });
 
     mainLayout->addLayout(titleLayout);
@@ -83,6 +84,10 @@ void FileInfoWidget::loadInfo(const QString& filepath) {
     lastModifiedText->setText(fileInfo.lastModified().toString(dateTimeFormat));
 
     pathText->setText(fileInfo.absoluteFilePath());
+}
+
+void FileInfoWidget::setMessageBarParent(QWidget* parent) {
+    messageBarParent = parent;
 }
 
 void FileInfoWidget::paintEvent(QPaintEvent* event) {
