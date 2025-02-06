@@ -96,20 +96,19 @@ void DiskScanner::scan(bool fullScan) {
 
 void DiskScanner::scanPath(const QString& path, bool fullScan) {
     if (!diskWatcher.directories().contains(path)) {
-        // run remove
         pendingDeleted += cache.take(path);
         return;
     }
 
-    qDebug() << "DiskScanner: scaning " << path;
+    qDebug() << "DiskScanner: scanning " << path;
     QStringList oldCache = fullScan ? QStringList{} : cache.value(path);
     QStringList newCache;
-    //QMap<QString, QDateTime> newModifiedTimes;
+    QMap<QString, QDateTime> newModifiedTimes;
     auto&& entryInfoList = QDir(path).entryInfoList(mediaFileFilter,
                                                     QDir::Files | QDir::NoDotAndDotDot);
     for (auto& entry : entryInfoList) {
         newCache += entry.absoluteFilePath();
-        //newModifiedTimes.insert(entry.absoluteFilePath(), entry.lastModified());
+        newModifiedTimes.insert(entry.absoluteFilePath(), entry.lastModified());
     }
     cache.insert(path, newCache);
 
@@ -117,13 +116,13 @@ void DiskScanner::scanPath(const QString& path, bool fullScan) {
     pendingCreated += added;
     pendingDeleted += removed;
 
-    /*//Check for modified files
+    // Check for modified files
     for (const auto& filePath : oldCache) {
         if (newModifiedTimes.contains(filePath)
             && newModifiedTimes[filePath] != QFileInfo(filePath).lastModified()) {
             pendingModified += filePath;
         }
-    }*/
+    }
 }
 
 void DiskScanner::submitChange(bool fullScan) {

@@ -203,6 +203,10 @@ void MediaViewerDelegate::saveImageFileDialog() {
 }
 
 void MediaViewerDelegate::onFileInfoClicked() {
+    if (view->fileInfoWidget->layout()) {
+        qDebug() << "FileInfoWidget already has a layout!";
+        return;
+    }
     auto* fileInfoAnimation = new QPropertyAnimation(view->fileInfoWidget, "width");
     connect(fileInfoAnimation, &QPropertyAnimation::valueChanged, [=](const QVariant& value) {
         view->fileInfoWidget->setFixedWidth(value.toInt());

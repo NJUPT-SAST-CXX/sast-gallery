@@ -11,7 +11,8 @@
 MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget* parent)
     : QLabel(parent)
     , model(model)
-    , rowIndex(rowIndex) {
+    , rowIndex(rowIndex)
+    , diskScanner(new DiskScanner(this)) { // Initialize diskScanner
     filepath = model->data(model->index(rowIndex, MediaListModel::Path)).value<QString>();
     lastModified = model->data(model->index(rowIndex, MediaListModel::LastModifiedTime))
                        .value<QDateTime>();
@@ -23,9 +24,8 @@ MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget*
     setScaledContents(true);
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     initMedia();
-    // TODO: reload preview when photo is modified
     connect(this, &MediaPreviewer::doubleClicked, this, &MediaPreviewer::openMediaViewer);
-    //connect(diskScanner, &DiskScanner::fileModified, this, &MediaPreviewer::onFileModified);
+    connect(diskScanner, &DiskScanner::fileModified, this, &MediaPreviewer::onFileModified);
 }
 
 MediaPreviewer::~MediaPreviewer() {}
@@ -69,6 +69,7 @@ bool MediaPreviewer::isFavorite() {
 }
 
 void MediaPreviewer::initMedia() {
+    qDebug() << "initMedia called for filepath:" << filepath;
     mediaSize = QImageReader(filepath).size();
     requireReloadImage = true;
 }
@@ -92,7 +93,15 @@ void MediaPreviewer::loadImageComplete() {
 }
 
 QPixmap MediaPreviewer::loadImage() {
+    if (filepath.isEmpty()) {
+        qDebug() << "File path is empty!";
+        return QPixmap();
+    }
     QImageReader reader(filepath);
+    if (!reader.canRead()) {
+        qDebug() << "Cannot read image from file path:" << filepath;
+        return QPixmap();
+    }
     reader.setScaledSize(QSize{0, 180});
     return roundedPixmap(QPixmap::fromImage(reader.read()), 4);
 }
@@ -141,6 +150,10 @@ QPixmap MediaPreviewer::scalePixmapContent(qreal scaleFactor) {
 }
 
 void MediaPreviewer::scaleAnimation(qreal startScale, qreal endScale, int duration) {
+    if (!metaObject()->indexOfProperty("scaleFactor") >= 0) {
+        qDebug() << "scaleFactor property does not exist!";
+        return;
+    }
     auto* animation = new QPropertyAnimation(this, "scaleFactor");
     animation->setDuration(duration);
     animation->setStartValue(startScale);
@@ -158,10 +171,13 @@ void MediaPreviewer::openMediaViewer() {
     viewer->show();
 }
 
-/*void MediaPreviewer::onFileModified(const QStringList& paths) {
+void MediaPreviewer::onFileModified(const QStringList& paths) {
+    qDebug() << "onFileModified called with paths:" << paths;
     for (const QString& path : paths) {
         if (path == this->filepath) {
+            qDebug() << "File matched, reloading preview:" << path;
             initMedia();
+            loadImageComplete();
         }
     }
-}*/
+}

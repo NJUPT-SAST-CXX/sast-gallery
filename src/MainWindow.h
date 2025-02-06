@@ -21,9 +21,9 @@ public:
     void initContent();
     void initModel();
 
-    /*public slots:
+public slots:
     void onFileModified(const QStringList& paths);
-*/
+
 private:
     // pages
     FavoritePage* favoritePage;
@@ -39,6 +39,6 @@ private:
     // disk scanner
     DiskScanner* diskScanner;
 
-    // previews
-    //QList<MediaPreviewer*> previewers;
+    // previewers
+    QList<MediaPreviewer*> previewers;
 };

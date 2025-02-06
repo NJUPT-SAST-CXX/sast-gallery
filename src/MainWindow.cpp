@@ -17,11 +17,12 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::initWindow() {
-    resize(settings.value("windowSize").toSize());
+    // Set a default size if the settings value is invalid
+    QSize defaultSize(800, 600);
+    QSize windowSize = settings.value("windowSize", defaultSize).toSize();
+    resize(windowSize);
     setUserInfoCardVisible(false);
     setWindowTitle("SAST Gallery");
-
-    setWindowButtonFlag(ElaAppBarType::ButtonType::StayTopButtonHint, false);
 }
 
 void MainWindow::initContent() {
@@ -39,12 +40,6 @@ void MainWindow::initContent() {
     settingPage = new SettingPage(this);
     QString settingPageKey;
     addFooterNode("Setting", settingPage, settingPageKey, 0, ElaIconType::GearComplex);
-
-    /*// previews
-    for (int i = 0; i < galleryModel->rowCount(); ++i) {
-        MediaPreviewer* previewer = new MediaPreviewer(galleryModel, i, this);
-        previewers.append(previewer);
-    }*/
 }
 
 void MainWindow::initModel() {
@@ -64,18 +59,18 @@ void MainWindow::initModel() {
     QObject::connect(diskScanner, &DiskScanner::fileCreated, mediaModel, &MediaListModel::appendEntries);
     QObject::connect(diskScanner, &DiskScanner::fileDeleted, mediaModel, &MediaListModel::removeEntries);
     QObject::connect(diskScanner, &DiskScanner::fileModified, mediaModel, &MediaListModel::modifiedEntries);
+    QObject::connect(diskScanner, &DiskScanner::fileModified, this, &MainWindow::onFileModified);
     QObject::connect(diskScanner, &DiskScanner::fullScan, mediaModel, &MediaListModel::resetEntries);
-    //QObject::connect(diskScanner, &DiskScanner::fileModified, this, &MainWindow::onFileModified);
     // clang-format on
     diskScanner->scan();
 }
 
-/*void MainWindow::onFileModified(const QStringList& paths) {
+void MainWindow::onFileModified(const QStringList& paths) {
     for (const QString& path : paths) {
         for (MediaPreviewer* previewer : previewers) {
             if (previewer->path() == path) {
-                previewer->onFileModified(QStringList(path)); // 将 QString 转换为 QStringList
+                previewer->onFileModified(QStringList(path)); // Convert QString to QStringList
             }
         }
     }
-}*/
+}
