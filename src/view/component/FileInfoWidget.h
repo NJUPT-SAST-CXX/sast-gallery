@@ -13,6 +13,7 @@ public:
     ~FileInfoWidget();
 
     void loadInfo(const QString& filepath);
+    void setMessageBarParent(QWidget* parent);
 
 protected:
     void paintEvent(QPaintEvent* event) override;
@@ -25,6 +26,7 @@ private:
     ElaText* createdText{};
     ElaText* lastModifiedText{};
     ElaText* pathText{};
+    QWidget* messageBarParent{};
 
     static ElaIconButton* createIconDisplayer(ElaIconType::IconName awesome,
                                               QWidget* parent,
