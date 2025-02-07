@@ -65,4 +65,4 @@ CMakeLists.txt.user
 install
 
 # language server protocol
-.clangd
+.clangd.DS_Store
