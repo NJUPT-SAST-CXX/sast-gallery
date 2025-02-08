@@ -42,10 +42,12 @@ if(APPLE)
 endif()
 
 set(Qt6_DIR "/Users/lizengxin/Qt/6.8.2/macos/lib/cmake/Qt6")
-find_package(Qt6 REQUIRED)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
-find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia MultimediaWidgets Concurrent)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia MultimediaWidgets Concurrent Core)
+
+message(STATUS "Qt6_DIR: ${Qt6_DIR}")
+message(STATUS "Qt6 Widgets include dirs: ${Qt6Widgets_INCLUDE_DIRS}")
 
 file(GLOB_RECURSE PROJECT_SOURCES
     src/*.cpp
