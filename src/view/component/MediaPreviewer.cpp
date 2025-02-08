@@ -150,7 +150,7 @@ QPixmap MediaPreviewer::scalePixmapContent(qreal scaleFactor) {
 }
 
 void MediaPreviewer::scaleAnimation(qreal startScale, qreal endScale, int duration) {
-    if (!metaObject()->indexOfProperty("scaleFactor") >= 0) {
+    if (metaObject()->indexOfProperty("scaleFactor") < 0) {
         qDebug() << "scaleFactor property does not exist!";
         return;
     }

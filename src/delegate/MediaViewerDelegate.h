@@ -24,6 +24,7 @@ public:
 signals:
     void scaledByWheel();
     void imageChanged(bool fadeAnimation = true);
+    void addToFavoritePage(const QString& filePath);
 
 public slots:
     void onModelRowsToBeRemoved(const QModelIndex& parent, int first, int last);
@@ -39,6 +40,7 @@ public slots:
     void nextImage();
     void rotateImage();
     void openInFileExplorer();
+    void onFavButtonClicked();
 
 private:
     QAbstractItemModel* mediaListModel;
@@ -52,4 +54,8 @@ private:
     bool loadImage(const QImage& image, bool fadeAnimation = true);
     void scaleTo(int percent);
     [[nodiscard]] int getScale() const;
+
+    QMap<QString, bool> favoriteStatus;
+    void loadFavoriteStatus();
+    void saveFavoriteStatus();
 };

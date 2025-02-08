@@ -51,6 +51,7 @@ private:
 
     // scan specific path, path must be a subfolder of searchPath
     QMap<QString, QStringList> cache;
+    QMap<QString, QDateTime> oldModTimes; // save last modified time for each file
     void scanPath(const QString& path, bool fullScan = false);
 
     // work with scan() and scanPath(), as scan cache

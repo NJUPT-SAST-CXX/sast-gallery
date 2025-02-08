@@ -23,6 +23,8 @@ void MainWindow::initWindow() {
     resize(windowSize);
     setUserInfoCardVisible(false);
     setWindowTitle("SAST Gallery");
+
+    setWindowButtonFlag(ElaAppBarType::ButtonType::StayTopButtonHint, false);
 }
 
 void MainWindow::initContent() {

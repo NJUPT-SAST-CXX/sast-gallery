@@ -4,6 +4,7 @@
 #include <ElaText.h>
 #include <QApplication>
 #include <QClipboard>
+#include <QDataStream>
 #include <QFile>
 #include <QFileDialog>
 #include <QGuiApplication>
@@ -26,6 +27,7 @@ MediaViewerDelegate::MediaViewerDelegate(QAbstractItemModel* model,
     , view(viewer) {
     filepath = mediaIndex.data().value<QString>();
     loadImage(filepath);
+    loadFavoriteStatus();
 }
 
 void MediaViewerDelegate::initConnections() {
@@ -89,10 +91,12 @@ void MediaViewerDelegate::initConnections() {
 
     connect(view->nextAction, &QAction::triggered, this, &MediaViewerDelegate::nextImage);
 
-    connect(view->likeButton, &ElaIconButton::clicked, this, [=]() {
-        //TODO(must): implement the like functionality
-        // add the image to Favorite Page
-    });
+    connect(view->likeButton,
+            &ElaIconButton::clicked,
+            this,
+            &MediaViewerDelegate::onFavButtonClicked);
+    //TODO(must): implement the like functionality
+    // add the image to Favorite Page
 
     connect(view->fileInfoButton,
             &ElaIconButton::clicked,
@@ -393,4 +397,39 @@ int MediaViewerDelegate::getScale() const {
 void MediaViewerDelegate::openInFileExplorer() {
     QString command = "explorer.exe /select, \"" + filepath + "\"";
     QProcess::startDetached(command);
+}
+
+void MediaViewerDelegate::onFavButtonClicked() {
+    // Add the current image to FavoritePage
+    emit addToFavoritePage(filepath);
+    favoriteStatus[filepath] = true;
+    saveFavoriteStatus();
+}
+
+void MediaViewerDelegate::saveFavoriteStatus() {
+    QFile file("favoriteStatus.dat");
+    if (!file.open(QIODevice::WriteOnly)) {
+        qDebug() << "Cannot open file for writing: " << file.errorString();
+        return;
+    }
+
+    QDataStream out(&file);
+    out.setVersion(QDataStream::Qt_5_0);
+
+    // Write the favorite status
+    out << favoriteStatus;
+}
+
+void MediaViewerDelegate::loadFavoriteStatus() {
+    QFile file("favoriteStatus.dat");
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << "Cannot open file for reading: " << file.errorString();
+        return;
+    }
+
+    QDataStream in(&file);
+    in.setVersion(QDataStream::Qt_5_0);
+
+    // Read the favorite status
+    in >> favoriteStatus;
 }
