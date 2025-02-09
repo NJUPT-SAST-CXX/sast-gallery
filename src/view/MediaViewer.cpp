@@ -1,8 +1,8 @@
 #include "MediaViewer.h"
 #include <ElaMenu.h>
 #include <ElaMenuBar.h>
-#include <QDir>
-#include <QScreen>
+#include <ElaToolTip.h>
+#include <QFileInfo>
 #include <delegate/MediaViewerDelegate.h>
 #include <utils/Tools.h>
 
@@ -137,4 +137,23 @@ void MediaViewer::initContent() {
     mainLayout->addWidget(menuBar);
     mainLayout->addLayout(middleAreaLayout);
     mainLayout->setAlignment(Qt::AlignTop);
+
+    // tooltips
+    auto* likeButtonToolTip = new ElaToolTip(likeButton);
+    likeButtonToolTip->setToolTip("Like");
+    auto* fileInfoButtonToolTip = new ElaToolTip(fileInfoButton);
+    fileInfoButtonToolTip->setToolTip("File Info");
+    auto* zoomInButtonToolTip = new ElaToolTip(zoomInButton);
+    zoomInButtonToolTip->setToolTip("Zoom In");
+    auto* zoomOutButtonToolTip = new ElaToolTip(zoomOutButton);
+    zoomOutButtonToolTip->setToolTip("Zoom Out");
+    auto* maximizeButtonToolTip = new ElaToolTip(maximizeButton);
+    maximizeButtonToolTip->setToolTip("Maximize");
+    auto* zoom2originalButtonToolTip = new ElaToolTip(zoom2originalButton);
+    zoom2originalButtonToolTip->setToolTip("Zoom to Original");
+    auto* zoomSliderToolTip = new ElaToolTip(zoomSlider);
+    zoomSliderToolTip->setToolTip("100%");
+    connect(zoomSlider, &QSlider::valueChanged, this, [=](int value) {
+        zoomSliderToolTip->setToolTip(QString("%1%").arg(value));
+    });
 }
