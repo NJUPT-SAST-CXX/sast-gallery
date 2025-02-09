@@ -52,9 +52,10 @@ private:
     // scan specific path, path must be a subfolder of searchPath
     QMap<QString, QStringList> cache;
     void scanPath(const QString& path, bool fullScan = false);
+    QMap<QString, QDateTime> lastModificationTime;
 
     // work with scan() and scanPath(), as scan cache
-    QStringList pendingCreated, pendingDeleted;
+    QStringList pendingCreated, pendingDeleted, pendingModified;
     void submitChange(bool fullScan = false);
 
     // QDir name filter

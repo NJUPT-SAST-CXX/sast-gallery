@@ -2,6 +2,8 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QStandardPaths>
+#include <QFileInfo>
+#include <QDateTime>
 
 DiskScanner::DiskScanner(QObject* parent)
     : QObject(parent) {
@@ -103,7 +105,17 @@ void DiskScanner::scanPath(const QString& path, bool fullScan) {
     auto&& entryInfoList = QDir(path).entryInfoList(mediaFileFilter,
                                                     QDir::Files | QDir::NoDotAndDotDot);
     for (auto& entry : entryInfoList) {
-        newCache += entry.absoluteFilePath();
+        QString filePath = entry.absoluteFilePath();
+        newCache += filePath;
+
+        QDateTime lastModified = entry.lastModified();
+        if(lastModificationTime.contains(filePath)) {
+            QDateTime oldModified = lastModificationTime.value(filePath);
+            if(lastModified != oldModified) {
+                pendingModified.append(filePath);
+            }
+        }
+        lastModificationTime.insert(filePath, lastModified);
     }
     cache.insert(path, newCache);
 
@@ -117,6 +129,7 @@ void DiskScanner::submitChange(bool fullScan) {
         emit DiskScanner::fullScan(pendingCreated);
         pendingCreated.clear();
         pendingDeleted.clear();
+        pendingModified.clear();
         return;
     }
     if (pendingCreated.size() != 0) {
@@ -126,6 +139,10 @@ void DiskScanner::submitChange(bool fullScan) {
     if (pendingDeleted.size() != 0) {
         emit fileDeleted(pendingDeleted);
         pendingDeleted.clear();
+    }
+    if (pendingModified.size() != 0) {
+        emit fileModified(pendingModified);
+        pendingModified.clear();
     }
 }
 
