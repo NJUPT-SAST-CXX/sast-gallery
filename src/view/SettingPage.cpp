@@ -105,7 +105,7 @@ SettingPage::SettingPage(QWidget* parent)
             [=](int index) {
                 settings.setValue("wheelBehavior", index);
             });
-    wheelComboBox->setCurrentIndex(settings.value("wheelBehavior", 0).toBool());
+    wheelComboBox->setCurrentIndex(settings.value("wheelBehavior", 0).toInt());
 
     auto deletionSwitchButton = new ElaToggleSwitch(this);
     auto deletionSwitchArea = createScrollPageArea("Ask for deletion permission",
