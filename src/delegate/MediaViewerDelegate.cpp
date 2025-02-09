@@ -69,6 +69,7 @@ void MediaViewerDelegate::initConnections() {
 
     //TODO(must): implement the openInFileExplorer functionality
     //connect(openInFileExplorerAction,......)
+    connect(view->openInFileExplorerAction, &QAction::triggered, this, &MediaViewerDelegate::openImageFileDialog);
 
     connect(view->rotateAction, &QAction::triggered, this, &MediaViewerDelegate::rotateImage);
 
@@ -188,9 +189,10 @@ bool MediaViewerDelegate::copyImageToClipboard() {
 }
 
 void MediaViewerDelegate::openImageFileDialog() {
+    QString initFilePath = filepath;
     filepath = QFileDialog::getOpenFileName(nullptr,
                                             "Choose Image File",
-                                            "",
+                                            initFilePath,
                                             "Image Files (*.png *.jpg *.bmp *.jpeg *.gif)");
     if (!filepath.isEmpty()) {
         loadImage(filepath);
