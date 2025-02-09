@@ -17,10 +17,7 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::initWindow() {
-    // Set a default size if the settings value is invalid
-    QSize defaultSize(800, 600);
-    QSize windowSize = settings.value("windowSize", defaultSize).toSize();
-    resize(windowSize);
+    resize(settings.value("windowSize").toSize());
     setUserInfoCardVisible(false);
     setWindowTitle("SAST Gallery");
 
@@ -33,7 +30,7 @@ void MainWindow::initContent() {
     addPageNode("Gallery", galleryPage, ElaIconType::Images);
 
     favoritePage = new FavoritePage(favoriteModel, this);
-    addPageNode("Favourites", favoritePage, ElaIconType::Heart);
+    addPageNode("Favorites", favoritePage, ElaIconType::Heart);
 
     aboutPage = new AboutPage(this);
     QString aboutPageKey;
@@ -61,18 +58,7 @@ void MainWindow::initModel() {
     QObject::connect(diskScanner, &DiskScanner::fileCreated, mediaModel, &MediaListModel::appendEntries);
     QObject::connect(diskScanner, &DiskScanner::fileDeleted, mediaModel, &MediaListModel::removeEntries);
     QObject::connect(diskScanner, &DiskScanner::fileModified, mediaModel, &MediaListModel::modifiedEntries);
-    QObject::connect(diskScanner, &DiskScanner::fileModified, this, &MainWindow::onFileModified);
     QObject::connect(diskScanner, &DiskScanner::fullScan, mediaModel, &MediaListModel::resetEntries);
     // clang-format on
     diskScanner->scan();
-}
-
-void MainWindow::onFileModified(const QStringList& paths) {
-    for (const QString& path : paths) {
-        for (MediaPreviewer* previewer : previewers) {
-            if (previewer->path() == path) {
-                previewer->onFileModified(QStringList(path)); // Convert QString to QStringList
-            }
-        }
-    }
 }
