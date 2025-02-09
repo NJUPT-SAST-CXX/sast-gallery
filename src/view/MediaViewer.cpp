@@ -26,6 +26,10 @@ void MediaViewer::initWindow() {
 }
 
 void MediaViewer::initContent() {
+    if (layout()) {
+        delete layout();
+    }
+
     auto* mainLayout = new QVBoxLayout(this);
     auto* middleAreaLayout = new QHBoxLayout(this);
     auto* mainMiddleAreaLayout = new QVBoxLayout(this);

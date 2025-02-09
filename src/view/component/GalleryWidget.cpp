@@ -1,7 +1,7 @@
 #include "GalleryWidget.h"
 #include "MediaPreviewer.h"
 #include "model/MediaListModel.h"
-
+#include "view/FavoritePage.h"
 GalleryWidget::GalleryWidget(QAbstractItemModel* model, QWidget* parent)
     : mediaListModel(model)
     , mediaLayout(new MediaFlexLayout{this})
@@ -31,21 +31,24 @@ void GalleryWidget::onModelDataChanged(const QModelIndex& topLeft,
                                        const QModelIndex& bottomRight,
                                        const QList<int>& roles) {
     qDebug() << "onModelDataChanged\t" << topLeft << bottomRight;
+
+    // 仅处理 IsFavorite 列的变化
+    if (topLeft.column() != MediaListModel::IsFavorite
+        && bottomRight.column() != MediaListModel::IsFavorite) {
+        return;
+    }
+
     for (int row = topLeft.row(); row <= bottomRight.row(); row++) {
-        for (int col = topLeft.column(); col <= bottomRight.column(); col++) {
-            auto* item = mediaLayout->itemAt(row);
-            auto data = mediaListModel->data(mediaListModel->index(row, col));
-            switch (MediaListModel::Property(col)) {
-            case MediaListModel::Path:
-                dynamic_cast<MediaPreviewer*>(item->widget())->setPath(data.value<QString>());
-                break;
-            case MediaListModel::LastModifiedTime:
-                dynamic_cast<MediaPreviewer*>(item->widget())
-                    ->setLastModifiedTime(data.value<QDateTime>());
-                break;
-            case MediaListModel::IsFavorite:
-                dynamic_cast<MediaPreviewer*>(item->widget())->setIsFavorite(data.value<bool>());
-                break;
+        QModelIndex index = mediaListModel->index(row, MediaListModel::IsFavorite);
+        bool isFavorite = index.data().toBool();
+
+        // 如果是收藏状态变化，且当前模型是收藏模型，则直接更新对应项
+        if (auto* previewer = dynamic_cast<MediaPreviewer*>(mediaLayout->itemAt(row)->widget())) {
+            previewer->setIsFavorite(isFavorite);
+            // 如果当前是收藏页且取消收藏，移除该预览器
+            if (dynamic_cast<FavoritePage*>(parent()) && !isFavorite) {
+                mediaLayout->removeWidget(previewer);
+                previewer->deleteLater();
             }
         }
     }
@@ -112,8 +115,15 @@ void GalleryWidget::resetPreviewers() {
     mediaLayout = new MediaFlexLayout{this};
 
     QList<QWidget*> widgets;
+    QSet<QString> existingPaths; // 用于存储已经存在的路径
+
     for (int i = 0; i < row; i++) {
-        widgets += new MediaPreviewer(mediaListModel, i);
+        QString filepath = mediaListModel->data(mediaListModel->index(i, MediaListModel::Path))
+                               .toString();
+        if (!existingPaths.contains(filepath)) {
+            widgets += new MediaPreviewer(mediaListModel, i);
+            existingPaths.insert(filepath); // 将路径添加到集合中
+        }
     }
     mediaLayout->addWidgets(widgets);
 }

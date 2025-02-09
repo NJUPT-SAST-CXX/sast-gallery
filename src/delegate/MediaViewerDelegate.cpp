@@ -27,7 +27,6 @@ MediaViewerDelegate::MediaViewerDelegate(QAbstractItemModel* model,
     , view(viewer) {
     filepath = mediaIndex.data().value<QString>();
     loadImage(filepath);
-    loadFavoriteStatus();
 }
 
 void MediaViewerDelegate::initConnections() {
@@ -94,7 +93,7 @@ void MediaViewerDelegate::initConnections() {
     connect(view->likeButton,
             &ElaIconButton::clicked,
             this,
-            &MediaViewerDelegate::onFavButtonClicked);
+            &MediaViewerDelegate::onFavoriteButtonClicked);
     //TODO(must): implement the like functionality
     // add the image to Favorite Page
 
@@ -215,10 +214,10 @@ void MediaViewerDelegate::saveImageFileDialog() {
 }
 
 void MediaViewerDelegate::onFileInfoClicked() {
-    if (view->fileInfoWidget->layout()) {
+    /*if (view->fileInfoWidget->layout()) {
         qDebug() << "FileInfoWidget already has a layout!";
         return;
-    }
+    }*/
     auto* fileInfoAnimation = new QPropertyAnimation(view->fileInfoWidget, "width");
     connect(fileInfoAnimation, &QPropertyAnimation::valueChanged, [=](const QVariant& value) {
         view->fileInfoWidget->setFixedWidth(value.toInt());
@@ -399,37 +398,10 @@ void MediaViewerDelegate::openInFileExplorer() {
     QProcess::startDetached(command);
 }
 
-void MediaViewerDelegate::onFavButtonClicked() {
-    // Add the current image to FavoritePage
-    emit addToFavoritePage(filepath);
-    favoriteStatus[filepath] = true;
-    saveFavoriteStatus();
-}
-
-void MediaViewerDelegate::saveFavoriteStatus() {
-    QFile file("favoriteStatus.dat");
-    if (!file.open(QIODevice::WriteOnly)) {
-        qDebug() << "Cannot open file for writing: " << file.errorString();
-        return;
-    }
-
-    QDataStream out(&file);
-    out.setVersion(QDataStream::Qt_5_0);
-
-    // Write the favorite status
-    out << favoriteStatus;
-}
-
-void MediaViewerDelegate::loadFavoriteStatus() {
-    QFile file("favoriteStatus.dat");
-    if (!file.open(QIODevice::ReadOnly)) {
-        qDebug() << "Cannot open file for reading: " << file.errorString();
-        return;
-    }
-
-    QDataStream in(&file);
-    in.setVersion(QDataStream::Qt_5_0);
-
-    // Read the favorite status
-    in >> favoriteStatus;
+void MediaViewerDelegate::onFavoriteButtonClicked() {
+    QString currentFilePath = getFilePath();
+    // update the model
+    QModelIndex favoriteIndex = mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite);
+    mediaListModel->setData(favoriteIndex, true, Qt::EditRole);
+    emit addToFavoritePage(currentFilePath);
 }

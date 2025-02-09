@@ -40,7 +40,7 @@ public slots:
     void nextImage();
     void rotateImage();
     void openInFileExplorer();
-    void onFavButtonClicked();
+    void onFavoriteButtonClicked();
 
 private:
     QAbstractItemModel* mediaListModel;
@@ -54,8 +54,4 @@ private:
     bool loadImage(const QImage& image, bool fadeAnimation = true);
     void scaleTo(int percent);
     [[nodiscard]] int getScale() const;
-
-    QMap<QString, bool> favoriteStatus;
-    void loadFavoriteStatus();
-    void saveFavoriteStatus();
 };

@@ -2,9 +2,13 @@
 #include <QDir>
 
 MediaListModel::MediaListModel(QObject* parent)
-    : QAbstractTableModel(parent) {}
+    : QAbstractTableModel(parent) {
+    loadFavoriteStatus();
+}
 
-MediaListModel::~MediaListModel() {}
+MediaListModel::~MediaListModel() {
+    saveFavoriteStatus();
+}
 
 int MediaListModel::rowCount(const QModelIndex& parent) const {
     return path.size();
@@ -66,12 +70,19 @@ bool MediaListModel::setData(const QModelIndex& index, const QVariant& value, in
         return false;
     }
     if (role == Qt::EditRole) {
-        if (value.value<bool>()) {
-            isFavorite.insert(path.value(index.row()));
-            dataChanged(index, index);
-        } else {
-            isFavorite.remove(path.value(index.row()));
-            dataChanged(index, index);
+        QString currentPath = path.value(index.row());
+        bool isCurrentlyFavorite = isFavorite.contains(currentPath);
+        bool newFavoriteStatus = value.value<bool>();
+
+        if (isCurrentlyFavorite != newFavoriteStatus) {
+            if (newFavoriteStatus) {
+                isFavorite.insert(currentPath);
+            } else {
+                isFavorite.remove(currentPath);
+            }
+            emit dataChanged(index, index); // 确保触发 dataChanged 信号
+            saveFavoriteStatus();           // 保存收藏状态
+            return true;
         }
     }
     return false;
@@ -112,4 +123,32 @@ void MediaListModel::modifiedEntries(const QStringList& paths) {
         lastModifiedTime.replace(row, QFileInfo(filePath).lastModified());
         dataChanged(index(row, Property::LastModifiedTime), index(row, Property::LastModifiedTime));
     }
+}
+
+void MediaListModel::loadFavoriteStatus() {
+    QFile file("favoriteStatus.dat");
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << "Cannot open file for reading: " << file.errorString();
+        return;
+    }
+
+    QDataStream in(&file);
+    in.setVersion(QDataStream::Qt_5_0);
+
+    // read favorite status
+    in >> isFavorite;
+}
+
+void MediaListModel::saveFavoriteStatus() {
+    QFile file("favoriteStatus.dat");
+    if (!file.open(QIODevice::WriteOnly)) {
+        qDebug() << "Cannot open file for writing: " << file.errorString();
+        return;
+    }
+
+    QDataStream out(&file);
+    out.setVersion(QDataStream::Qt_5_0);
+
+    // write favorite status
+    out << isFavorite;
 }

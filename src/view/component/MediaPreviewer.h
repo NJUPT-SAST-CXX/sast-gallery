@@ -11,11 +11,20 @@
 // display media in thumbnail, supposed to be work with ImageFlexLayout
 class MediaPreviewer : public QLabel {
     Q_OBJECT
+    Q_PROPERTY(qreal scaleFactor READ scaleFactor WRITE setScaleFactor NOTIFY scaleFactorChanged)
     DiskScanner* diskScanner;
 
 public:
     explicit MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget* parent = nullptr);
     ~MediaPreviewer();
+
+    qreal scaleFactor() const { return m_scaleFactor; }
+    void setScaleFactor(qreal scaleFactor) {
+        if (m_scaleFactor != scaleFactor) {
+            m_scaleFactor = scaleFactor;
+            emit scaleFactorChanged();
+        }
+    }
 
     // load image when show
     void paintEvent(QPaintEvent* event) override;
@@ -31,6 +40,7 @@ public:
 
 signals:
     void doubleClicked();
+    void scaleFactorChanged();
 
 public slots:
     void loadImageComplete();
@@ -38,6 +48,8 @@ public slots:
     void onFileModified(const QStringList& paths);
 
 private:
+    qreal m_scaleFactor = 1.0;
+
     QAbstractItemModel* model;
     int rowIndex;
 

@@ -1,8 +1,9 @@
 #pragma once
 
-#include "../delegate/MediaViewerDelegate.h"
 #include "BasePage.h"
 #include "component/GalleryWidget.h"
+#include "delegate/MediaViewerDelegate.h"
+#include "model/MediaListModel.h"
 #include <QAbstractItemModel>
 
 class FavoritePage : public BasePage {
@@ -21,4 +22,5 @@ private:
     MediaViewerDelegate* delegate;
     GalleryWidget* galleryWidget;
     QStringList favoriteImages;
+    MediaListModel* favoriteModel;
 };
