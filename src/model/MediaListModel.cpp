@@ -1,5 +1,6 @@
 #include "MediaListModel.h"
 #include <QDir>
+#include <utils/Settings.hpp>
 
 MediaListModel::MediaListModel(QObject* parent)
     : QAbstractTableModel(parent) {}
@@ -112,4 +113,28 @@ void MediaListModel::modifiedEntries(const QStringList& paths) {
         lastModifiedTime.replace(row, QFileInfo(filePath).lastModified());
         dataChanged(index(row, Property::LastModifiedTime), index(row, Property::LastModifiedTime));
     }
+}
+
+void MediaListModel::saveFavorites() const {
+    QFile file(FAVORITE_STATE_FILE);
+    if (!file.open(QIODevice::WriteOnly)) {
+        qWarning() << "Failed to open favorites file for writing:" << FAVORITE_STATE_FILE;
+        return;
+    }
+    QDataStream out(&file);
+    out << isFavorite;
+}
+
+void MediaListModel::loadFavorites() {
+    QFile file(FAVORITE_STATE_FILE);
+    if (!file.exists()) {
+        qWarning() << "Favorites file does not exist:" << FAVORITE_STATE_FILE;
+        return;
+    }
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning() << "Failed to open favorites file for reading:" << FAVORITE_STATE_FILE;
+        return;
+    }
+    QDataStream in(&file);
+    in >> isFavorite;
 }

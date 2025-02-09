@@ -26,6 +26,9 @@ public:
 
     enum Property { Path = 0, LastModifiedTime = 1, IsFavorite = 2 };
 
+    void saveFavorites() const;
+    void loadFavorites();
+
 public slots:
 
     // for signals from disk scanner
