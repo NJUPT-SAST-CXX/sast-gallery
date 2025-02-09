@@ -15,6 +15,7 @@
 #include <utils/Settings.hpp>
 #include <utils/Tools.h>
 #include <view/MediaViewer.h>
+#include <QDesktopServices>
 
 MediaViewerDelegate::MediaViewerDelegate(QAbstractItemModel* model,
                                          int index,
@@ -69,7 +70,7 @@ void MediaViewerDelegate::initConnections() {
 
     //TODO(must): implement the openInFileExplorer functionality
     //connect(openInFileExplorerAction,......)
-    connect(view->openInFileExplorerAction, &QAction::triggered, this, &MediaViewerDelegate::openImageFileDialog);
+    connect(view->openInFileExplorerAction, &QAction::triggered, this, &MediaViewerDelegate::openInFileExplorer);
 
     connect(view->rotateAction, &QAction::triggered, this, &MediaViewerDelegate::rotateImage);
 
@@ -387,4 +388,17 @@ void MediaViewerDelegate::scaleTo(int percent) {
 
 int MediaViewerDelegate::getScale() const {
     return view->imageViewer->getScale();
+}
+
+void MediaViewerDelegate::openInFileExplorer() {
+    if (filepath.isEmpty()) {
+        ElaMessageBar::error(ElaMessageBarType::Bottom,
+                             "No file selected!",
+                             nullptr,
+                             2000,
+                             view->imageViewer);
+        return;
+    }
+    QString directoryPath = QFileInfo(filepath).absolutePath();
+    QDesktopServices::openUrl(QUrl::fromLocalFile(directoryPath));
 }
