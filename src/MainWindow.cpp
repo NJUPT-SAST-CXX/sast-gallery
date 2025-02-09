@@ -30,7 +30,7 @@ void MainWindow::initContent() {
     addPageNode("Gallery", galleryPage, ElaIconType::Images);
 
     favoritePage = new FavoritePage(favoriteModel, this);
-    addPageNode("Favourites", favoritePage, ElaIconType::Heart);
+    addPageNode("Favorites", favoritePage, ElaIconType::Heart);
 
     aboutPage = new AboutPage(this);
     QString aboutPageKey;
@@ -61,5 +61,6 @@ void MainWindow::initModel() {
     QObject::connect(diskScanner, &DiskScanner::fileModified, mediaModel, &MediaListModel::modifiedEntries);
     QObject::connect(diskScanner, &DiskScanner::fullScan, mediaModel, &MediaListModel::resetEntries);
     // clang-format on
+
     diskScanner->scan();
 }

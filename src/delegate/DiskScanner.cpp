@@ -99,7 +99,7 @@ void DiskScanner::scanPath(const QString& path, bool fullScan) {
         return;
     }
 
-    qDebug() << "DiskScanner: scaning " << path;
+    qDebug() << "DiskScanner: scanning " << path;
     QStringList oldCache = fullScan ? QStringList{} : cache.value(path);
     QStringList newCache;
     auto&& entryInfoList = QDir(path).entryInfoList(mediaFileFilter,
