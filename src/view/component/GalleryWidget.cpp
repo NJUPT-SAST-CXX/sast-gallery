@@ -99,14 +99,22 @@ void GalleryWidget::onModelRowsRemoved(const QModelIndex& parent, int first, int
 }
 
 void GalleryWidget::initModelSignals() {
-    // clang-format off
-    connect(mediaListModel, &QAbstractItemModel::dataChanged, this, &GalleryWidget::onModelDataChanged);
-    connect(mediaListModel, &QAbstractItemModel::modelReset, this, &GalleryWidget::onModelModelReset);
-    connect(mediaListModel, &QAbstractItemModel::layoutChanged, this, &GalleryWidget::onModelLayoutChanged);
-    connect(mediaListModel, &QAbstractItemModel::rowsMoved, this, &GalleryWidget::onModelRowsMoved);
-    connect(mediaListModel, &QAbstractItemModel::rowsInserted, this, &GalleryWidget::onModelRowsInserted);
-    connect(mediaListModel, &QAbstractItemModel::rowsRemoved, this, &GalleryWidget::onModelRowsRemoved);
-    // clang-format on
+    static std::array<QMetaObject::Connection, 6> connections;
+
+    for (auto& connection : connections) {
+        disconnect(connection);
+    }
+
+    connections = {
+        // clang-format off
+    connect(mediaListModel, &QAbstractItemModel::dataChanged, this, &GalleryWidget::onModelDataChanged),
+    connect(mediaListModel, &QAbstractItemModel::modelReset, this, &GalleryWidget::onModelModelReset),
+    connect(mediaListModel, &QAbstractItemModel::layoutChanged, this, &GalleryWidget::onModelLayoutChanged),
+    connect(mediaListModel, &QAbstractItemModel::rowsMoved, this, &GalleryWidget::onModelRowsMoved),
+    connect(mediaListModel, &QAbstractItemModel::rowsInserted, this, &GalleryWidget::onModelRowsInserted),
+    connect(mediaListModel, &QAbstractItemModel::rowsRemoved, this, &GalleryWidget::onModelRowsRemoved),
+        // clang-format on
+    };
 }
 
 void GalleryWidget::resetPreviewers() {

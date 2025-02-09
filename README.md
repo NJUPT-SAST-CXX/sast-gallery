@@ -25,7 +25,7 @@
 注意：此项目使用子模块，因此请确保使用 `--recursive` 标志克隆存储库：
 
 ```bash
-git clone --recursive https://github.com/NJUPT-SAST-CXX/sast-gallery.git 
+git clone --recursive https://github.com/Symb0x76/sast-gallery.git 
 ```
 
 或者在克隆后执行以下命令：
