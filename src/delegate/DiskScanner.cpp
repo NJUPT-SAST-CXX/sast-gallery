@@ -1,9 +1,9 @@
 #include "DiskScanner.h"
+#include <QDateTime>
 #include <QDir>
 #include <QDirIterator>
-#include <QStandardPaths>
 #include <QFileInfo>
-#include <QDateTime>
+#include <QStandardPaths>
 
 DiskScanner::DiskScanner(QObject* parent)
     : QObject(parent) {
@@ -109,9 +109,9 @@ void DiskScanner::scanPath(const QString& path, bool fullScan) {
         newCache += filePath;
 
         QDateTime lastModified = entry.lastModified();
-        if(lastModificationTime.contains(filePath)) {
+        if (lastModificationTime.contains(filePath)) {
             QDateTime oldModified = lastModificationTime.value(filePath);
-            if(lastModified != oldModified) {
+            if (lastModified != oldModified) {
                 pendingModified.append(filePath);
             }
         }

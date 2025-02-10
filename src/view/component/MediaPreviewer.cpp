@@ -21,8 +21,8 @@ MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget*
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     initMedia();
     // TODO: open the image in a MediaViewer window when double clicked
-    connect(this, &MediaPreviewer::doubleClicked, this, [=](){
-        MediaViewer* ViewingWindow =  new MediaViewer(model, rowIndex, parent);
+    connect(this, &MediaPreviewer::doubleClicked, this, [=]() {
+        MediaViewer* ViewingWindow = new MediaViewer(model, rowIndex, parent);
         ViewingWindow->setAttribute(Qt::WA_DeleteOnClose);
         ViewingWindow->show();
     });
