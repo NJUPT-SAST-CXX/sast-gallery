@@ -15,6 +15,7 @@
 #include <utils/Settings.hpp>
 #include <utils/Tools.h>
 #include <view/MediaViewer.h>
+#include <QDesktopServices>
 
 MediaViewerDelegate::MediaViewerDelegate(QAbstractItemModel* model,
                                          int index,
@@ -66,6 +67,17 @@ void MediaViewerDelegate::initConnections() {
             &QAction::triggered,
             this,
             &MediaViewerDelegate::saveImageFileDialog);
+    connect(view->openInFileExplorerAction,
+            &QAction::triggered,
+            this,
+            [=,this](){
+                QString filePath = this->filepath;
+                //next three rows by AI
+                QFileInfo fileInfo(filePath);
+                QString folderPath = fileInfo.absolutePath();
+                QDesktopServices::openUrl(QUrl::fromLocalFile(folderPath));
+                //fromLocalFile() constructs a QUrl by parsing a local file path. toLocalFile() converts a URL to a local file path
+            });
 
     //TODO(must): implement the openInFileExplorer functionality
     //connect(openInFileExplorerAction,......)
