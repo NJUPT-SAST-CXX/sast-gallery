@@ -21,7 +21,7 @@ public:
     void addPath(const QString& path);
     void addPaths(const QStringList& paths);
     // recursively deinit path and subfolder
-    void scanModified(const QStringList& filePath);
+    void scanModified(const QStringList& filePath, QStringList pendingModified);
     void removePath(const QString& path);
     void removePaths(const QStringList& path);
     QStringList path();
@@ -55,7 +55,7 @@ private:
     void scanPath(const QString& path, bool fullScan = false);
 
     // work with scan() and scanPath(), as scan cache
-    QStringList pendingCreated, pendingDeleted;
+    QStringList pendingCreated, pendingDeleted,pendingModified;
     void submitChange(bool fullScan = false);
 
     // QDir name filter
