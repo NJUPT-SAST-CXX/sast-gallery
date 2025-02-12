@@ -5,7 +5,7 @@
 #include <QSize>
 #include <utils/Settings.hpp>
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]){
     QApplication a(argc, argv);
     QApplication::setWindowIcon(QIcon(":/res/icon/app_icon.svg"));
     initSettings();
