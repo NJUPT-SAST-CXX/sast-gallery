@@ -16,6 +16,9 @@
 #include <utils/Tools.h>
 #include <view/MediaViewer.h>
 #include <QDesktopServices>
+#include <QAbstractItemModel>
+#include <QDataStream>
+#include <MainWindow.h>
 
 MediaViewerDelegate::MediaViewerDelegate(QAbstractItemModel* model,
                                          int index,
@@ -24,6 +27,7 @@ MediaViewerDelegate::MediaViewerDelegate(QAbstractItemModel* model,
     : QObject(parent)
     , mediaListModel(model)
     , mediaIndex(model->index(index, MediaListModel::Path))
+    ,_mediaIndex(model->index(index, MediaListModel::IsFavorite))
     , view(viewer) {
     filepath = mediaIndex.data().value<QString>();
     loadImage(filepath);
@@ -98,7 +102,15 @@ void MediaViewerDelegate::initConnections() {
 
     connect(view->nextAction, &QAction::triggered, this, &MediaViewerDelegate::nextImage);
 
-    connect(view->likeButton, &ElaIconButton::clicked, this, [=]() {
+    connect(view->likeButton, &ElaIconButton::clicked, this, [=,this]() {
+        if(mediaListModel->data(_mediaIndex,Qt::EditRole)==false)
+            {
+            mediaListModel->setData(_mediaIndex,QVariant(true),Qt::EditRole);
+        }
+        else
+            {
+            mediaListModel->setData(_mediaIndex,QVariant(false),Qt::EditRole);
+        }
         //TODO(must): implement the like functionality
         // add the image to Favorite Page
     });
@@ -221,7 +233,7 @@ void MediaViewerDelegate::saveImageFileDialog() {
 
 void MediaViewerDelegate::onFileInfoClicked() {
     auto* fileInfoAnimation = new QPropertyAnimation(view->fileInfoWidget, "width");
-    connect(fileInfoAnimation, &QPropertyAnimation::valueChanged, [=](const QVariant& value) {
+    connect(fileInfoAnimation, &QPropertyAnimation::valueChanged, [=, this](const QVariant& value) {
         view->fileInfoWidget->setFixedWidth(value.toInt());
     });
     connect(fileInfoAnimation,
@@ -329,8 +341,10 @@ void MediaViewerDelegate::deleteImage() {
 void MediaViewerDelegate::prevImage() {
     if (mediaIndex.row() > 0) {
         mediaIndex = mediaListModel->index(mediaIndex.row() - 1, MediaListModel::Path);
+        _mediaIndex = mediaListModel->index(_mediaIndex.row() - 1, MediaListModel::IsFavorite);
     } else {
         mediaIndex = mediaListModel->index(mediaListModel->rowCount() - 1, MediaListModel::Path);
+        _mediaIndex = mediaListModel->index(mediaListModel->rowCount() - 1, MediaListModel::IsFavorite);
     }
     filepath = mediaIndex.data().value<QString>();
     loadImage(filepath);
@@ -339,8 +353,10 @@ void MediaViewerDelegate::prevImage() {
 void MediaViewerDelegate::nextImage() {
     if (mediaIndex.row() < mediaListModel->rowCount() - 1) {
         mediaIndex = mediaListModel->index(mediaIndex.row() + 1, MediaListModel::Path);
+        _mediaIndex = mediaListModel->index(_mediaIndex.row() + 1, MediaListModel::IsFavorite);
     } else {
         mediaIndex = mediaListModel->index(0, MediaListModel::Path);
+        _mediaIndex = mediaListModel->index(0, MediaListModel::IsFavorite);
     }
     filepath = mediaIndex.data().value<QString>();
     loadImage(filepath);
@@ -394,3 +410,4 @@ void MediaViewerDelegate::scaleTo(int percent) {
 int MediaViewerDelegate::getScale() const {
     return view->imageViewer->getScale();
 }
+
