@@ -42,6 +42,7 @@ public slots:
 private:
     QAbstractItemModel* mediaListModel;
     QPersistentModelIndex mediaIndex;
+    QPersistentModelIndex _mediaIndex;
     QImage image;
     QString filepath;
     MediaViewer* view;
