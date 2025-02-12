@@ -4,7 +4,7 @@
 #include "utils/Settings.hpp"
 
 MainWindow::MainWindow(QWidget* parent)
-    : ElaWindow(parent) {
+    : ElaWindow(parent){
     initWindow();
     initModel();
     initContent();
@@ -51,6 +51,7 @@ void MainWindow::initModel() {
     favoriteModel->setSourceModel(galleryModel);
     favoriteModel->setFilterKeyColumn(MediaListModel::IsFavorite);
     favoriteModel->setFilterFixedString("true");
+    //loadModel(favoriteModel,"model.dat");
 
     diskScanner = new DiskScanner();
     // clang-format off
@@ -61,4 +62,42 @@ void MainWindow::initModel() {
     // clang-format on
 
     diskScanner->scan();
+}
+
+void MainWindow::saveModel(QAbstractItemModel *model, const QString fileName)
+{
+    QFile file(fileName);
+    if(!file.open(QIODevice::WriteOnly))
+    {
+        qWarning()<<"无法打开文件进行写入操作";
+            return;
+    }
+    QDataStream out(&file);
+    for(int row=0;row < model->rowCount();++row){
+        for(int col=0;col < model->columnCount();++col){
+            QModelIndex index = model->index(row,col);
+            out << row<<col<<model->data(index).toString();
+        }
+    }
+    file.close();
+}
+
+void MainWindow::loadModel(QAbstractItemModel *model, const QString fileName)
+{
+    QFile file(fileName);
+    if(!file.open(QIODevice::ReadOnly))
+    {
+        qWarning()<<"无法打开文件进行写入操作";
+        return;
+    }
+    QDataStream in(&file);
+    while (!in.atEnd())
+    {
+        int row,col;
+        QString value;
+        in >>row>>col>>value;
+        QModelIndex index = model->index(row,col);
+        model->setData(index,value);
+    }
+    file.close();
 }
