@@ -259,8 +259,7 @@ void MediaViewerDelegate::adaptiveResize() {
 }
 
 void MediaViewerDelegate::deleteImage() {
-    if (settings.value("confirmDeletion").toBool()) {
-        // ask before deletion
+    if (settings.value("askForDeletionPermission").toBool()) {
         auto* confirmDialog = new ElaContentDialog(view);
         confirmDialog->setWindowTitle("Confirm Deletion");
         auto* centralWidget = new QWidget(view);
@@ -281,7 +280,11 @@ void MediaViewerDelegate::deleteImage() {
         connect(confirmDialog, &ElaContentDialog::middleButtonClicked, this, [=, this]() {
             confirmDialog->close();
         });
+        connect(confirmDialog, &ElaContentDialog::leftButtonClicked, this, [=, this]() {
+            confirmDialog->close();
+        });
         connect(confirmDialog, &ElaContentDialog::rightButtonClicked, this, [=, this]() {
+            confirmDialog->close();
             if (!QFile(filepath).remove()) {
                 ElaMessageBar::error(ElaMessageBarType::Bottom,
                                      "Delete failed!",
