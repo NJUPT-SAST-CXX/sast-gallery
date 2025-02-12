@@ -5,6 +5,7 @@
 #include <QPropertyAnimation>
 #include <QtConcurrentRun>
 #include <model/MediaListModel.h>
+#include <view/MediaViewer.h>
 
 MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget* parent)
     : QLabel(parent) {
@@ -19,7 +20,12 @@ MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget*
     setScaledContents(true);
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     initMedia();
-    // TODO: open the image in a MediaViewer window when double clicked
+
+    connect(this, &MediaPreviewer::doubleClicked, this, [=, this]() {
+        MediaViewer* viewer = new MediaViewer(model, rowIndex);
+        viewer->setAttribute(Qt::WA_DeleteOnClose);
+        viewer->show();
+    });
 }
 
 MediaPreviewer::~MediaPreviewer() {}
