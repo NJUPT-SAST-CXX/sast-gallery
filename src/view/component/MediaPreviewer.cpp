@@ -27,7 +27,7 @@ MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget*
     // TODO: open the image in a MediaViewer window when double clicked
 }
 
-MediaPreviewer::~MediaPreviewer() {}
+MediaPreviewer::~MediaPreviewer() = default;
 
 void MediaPreviewer::paintEvent(QPaintEvent* event) {
     QLabel::paintEvent(event);
