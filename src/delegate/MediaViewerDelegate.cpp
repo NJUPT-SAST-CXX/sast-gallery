@@ -15,6 +15,10 @@
 #include <utils/Settings.hpp>
 #include <utils/Tools.h>
 #include <view/MediaViewer.h>
+#include <QDesktopServices>
+#include <QUrl>
+#include <QDir>
+#include <QProcess>
 
 MediaViewerDelegate::MediaViewerDelegate(QAbstractItemModel* model,
                                          int index,
@@ -125,6 +129,9 @@ void MediaViewerDelegate::initConnections() {
             &ImageViewer::wheelScrolled,
             this,
             &MediaViewerDelegate::onWheelScrolled);
+
+    connect(view->openInFileExplorerAction, &QAction::triggered, 
+            this, &MediaViewerDelegate::openInFileExplorer);
 }
 
 void MediaViewerDelegate::onModelRowsToBeRemoved(const QModelIndex& parent, int first, int last) {
@@ -384,4 +391,20 @@ void MediaViewerDelegate::scaleTo(int percent) {
 
 int MediaViewerDelegate::getScale() const {
     return view->imageViewer->getScale();
+}
+
+void MediaViewerDelegate::openInFileExplorer() {
+    QFileInfo fileInfo(filepath);
+    if (fileInfo.exists()) {
+        QString explorer = "explorer.exe";
+        QStringList params;
+        params << "/select," << QDir::toNativeSeparators(filepath);
+        QProcess::startDetached(explorer, params);
+    } else {
+        ElaMessageBar::error(ElaMessageBarType::Bottom,
+                           "File not found!",
+                           nullptr,
+                           2000,
+                           view->imageViewer);
+    }
 }
