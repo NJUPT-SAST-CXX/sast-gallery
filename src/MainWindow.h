@@ -8,8 +8,10 @@
 #include "view/SettingPage.h"
 #include <ElaWindow.h>
 #include <QSortFilterProxyModel>
+#include <QFile>
+#include <qcoreapplication.h>
 
-class MainWindow : public ElaWindow {
+class MainWindow : public ElaWindow ,public QCoreApplication {
     Q_OBJECT
 
 public:
@@ -19,6 +21,8 @@ public:
     void initWindow();
     void initContent();
     void initModel();
+    void saveModel(QAbstractItemModel* model, const QString fileName);
+    void loadModel(QAbstractItemModel* model, const QString fileName);
 
 private:
     // pages
