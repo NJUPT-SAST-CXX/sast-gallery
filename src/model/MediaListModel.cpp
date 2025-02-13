@@ -77,6 +77,30 @@ bool MediaListModel::setData(const QModelIndex& index, const QVariant& value, in
     return false;
 }
 
+void MediaListModel::saveisFavorite(const QString fileName)
+{
+    QFile file(fileName);
+    if(!file.open(QIODevice::WriteOnly))
+    {
+        qWarning("cannot open file for writing");
+    }
+    QDataStream out(&file);
+    out << isFavorite;
+    file.close();
+}
+
+void MediaListModel::loadisFavorite(const QString fileName)
+{
+    QFile file(fileName);
+    if(!file.open(QIODevice::ReadOnly))
+    {
+        qWarning("cannot open file for reading");
+    }
+    QDataStream in(&file);
+    in >>isFavorite;
+    file.close();
+}
+
 void MediaListModel::resetEntries(const QStringList& paths) {
     beginResetModel();
     path = paths;
