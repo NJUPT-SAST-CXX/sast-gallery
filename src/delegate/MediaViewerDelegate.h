@@ -21,6 +21,7 @@ public:
     [[nodiscard]] auto getImage() const { return this->image; }
     void initConnections();
 
+
 signals:
     void scaledByWheel();
     void imageChanged(bool fadeAnimation = true);
