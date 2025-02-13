@@ -58,7 +58,8 @@ void GalleryWidget::onModelModelReset() {
 
 void GalleryWidget::onModelLayoutChanged(const QList<QPersistentModelIndex>& parents,
                                          QAbstractItemModel::LayoutChangeHint hint) {
-    qFatal("onModelLayoutChanged called");
+    // require a new way to load image to reduce the cost of model reorder
+    qDebug() << "onModelLayoutChanged";
     resetPreviewers();
 }
 
