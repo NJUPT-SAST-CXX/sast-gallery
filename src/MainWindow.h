@@ -11,7 +11,7 @@
 #include <QFile>
 #include <qcoreapplication.h>
 
-class MainWindow : public ElaWindow ,public QCoreApplication {
+class MainWindow : public ElaWindow  {
     Q_OBJECT
 
 public:
@@ -21,8 +21,7 @@ public:
     void initWindow();
     void initContent();
     void initModel();
-    void saveModel(QAbstractItemModel* model, const QString fileName);
-    void loadModel(QAbstractItemModel* model, const QString fileName);
+
 
 private:
     // pages
