@@ -25,6 +25,9 @@ public:
     bool setData(const QModelIndex& index, const QVariant& value, int role) override;
 
     enum Property { Path = 0, LastModifiedTime = 1, IsFavorite = 2 };
+    void saveisFavorite(const QString fileName);
+    void loadisFavorite(const QString fileName);
+
 
 public slots:
 
