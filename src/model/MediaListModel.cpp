@@ -70,20 +70,14 @@ bool MediaListModel::setData(const QModelIndex& index, const QVariant& value, in
         return false;
     }
     if (role == Qt::EditRole) {
-        QString currentPath = path.value(index.row());
-        bool isCurrentlyFavorite = isFavorite.contains(currentPath);
-        bool newFavoriteStatus = value.value<bool>();
-
-        if (isCurrentlyFavorite != newFavoriteStatus) {
-            if (newFavoriteStatus) {
-                isFavorite.insert(currentPath);
-            } else {
-                isFavorite.remove(currentPath);
-            }
-            emit dataChanged(index, index); // 确保触发 dataChanged 信号
-            saveFavoriteStatus();           // 保存收藏状态
-            return true;
+        if (value.value<bool>()) {
+            isFavorite.insert(path.value(index.row()));
+            emit dataChanged(index, index);
+        } else {
+            isFavorite.remove(path.value(index.row()));
+            emit dataChanged(index, index);
         }
+        saveFavoriteStatus();
     }
     return false;
 }

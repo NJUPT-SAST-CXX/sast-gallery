@@ -403,5 +403,5 @@ void MediaViewerDelegate::onFavoriteButtonClicked() {
     // update the model
     QModelIndex favoriteIndex = mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite);
     mediaListModel->setData(favoriteIndex, true, Qt::EditRole);
-    emit addToFavoritePage(currentFilePath);
+    emit addToFav(currentFilePath);
 }

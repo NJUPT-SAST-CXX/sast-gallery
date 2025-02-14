@@ -1,6 +1,6 @@
 #pragma once
 
-#include ".\delegate\DiskScanner.h"
+#include "delegate/DiskScanner.h"
 #include <QAbstractItemModel>
 #include <QDateTime>
 #include <QEvent>
@@ -12,7 +12,6 @@
 class MediaPreviewer : public QLabel {
     Q_OBJECT
     Q_PROPERTY(qreal scaleFactor READ scaleFactor WRITE setScaleFactor NOTIFY scaleFactorChanged)
-    DiskScanner* diskScanner;
 
 public:
     explicit MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget* parent = nullptr);
@@ -45,7 +44,7 @@ signals:
 public slots:
     void loadImageComplete();
     void openMediaViewer();
-    void onFileModified(const QStringList& paths);
+    // void onFileModified(const QStringList& paths);
 
 private:
     qreal m_scaleFactor = 1.0;

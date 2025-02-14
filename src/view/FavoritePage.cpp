@@ -5,31 +5,23 @@
 #include <ElaText.h>
 
 FavoritePage::FavoritePage(QAbstractItemModel* model, QWidget* parent)
-    : BasePage(parent)
-    , galleryWidget(new GalleryWidget(model, this)) { // 使用独立模型管理收藏
+    : BasePage(parent) {
+    setWindowTitle("Favorites");
 
-    galleryWidget->setWindowTitle("Favourites");
+    centralWidget = new GalleryWidget(model);
+    centralWidget->setWindowTitle("Favorites");
 
-    // 初始化 delegate，使用传入的模型和初始索引 0（需确保模型有效性）
-    delegate = new MediaViewerDelegate(model, 0, nullptr, this);
+    addCentralWidget(centralWidget);
 
-    // 连接信号：当 delegate 触发 addToFavoritePage 时，更新 FavoritePage
-    connect(delegate,
-            &MediaViewerDelegate::addToFavoritePage,
-            this,
-            &FavoritePage::onAddToFavoritePage);
-
-    // 初始化 GalleryWidget 使用独立的收藏模型
-    galleryWidget->setModel(model);
-    addCentralWidget(galleryWidget);
-
-    setWindowTitle("Favourites");
+    auto* delegate = new MediaViewerDelegate(model, 0, nullptr, this);
+    connect(delegate, &MediaViewerDelegate::addToFav, this, &FavoritePage::onAddToFav);
 }
 
 FavoritePage::~FavoritePage() {}
 
-void FavoritePage::onAddToFavoritePage(const QString& filepath) {
-    Q_UNUSED(filepath);
-    // 只需刷新视图
-    galleryWidget->resetPreviewers();
+void FavoritePage::onAddToFav(const QString& path) {
+    auto* model = centralWidget->model();
+    auto index = model->index(model->rowCount() - 1, 0);
+    model->setData(index, true, MediaListModel::IsFavorite);
+    centralWidget->setModel(model);
 }

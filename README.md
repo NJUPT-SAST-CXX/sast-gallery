@@ -18,24 +18,23 @@
 
 ## 简介
 
-桌面端电子相册应用，使用Qt6编写
+桌面端电子相册应用，使用 Qt6 编写
 
 ## Build
 
 注意：此项目使用子模块，因此请确保使用 `--recursive` 标志克隆存储库：
 
 ```bash
-git clone --recursive https://github.com/Symb0x76/sast-gallery.git 
+git clone --recursive https://github.com/NJUPT-SAST-CXX/sast-gallery.git
 ```
 
 或者在克隆后执行以下命令：
-
 
 ```bash
 git submodule update --init --recursive
 ```
 
-使用你的 IDE (QtCreator等) 来打开项目. 只支持 `CMake` 构建.
+使用你的 IDE (QtCreator 等) 来打开项目. 只支持 `CMake` 构建.
 
 ### 提交检查 Hook
 
@@ -59,15 +58,13 @@ pre-commit install
 
 ### 已知问题及解决方法
 
-- **Linux平台CMake生成报错**
-    
-    保证目录下存在build文件夹后再执行CMake，或执行第二遍CMake
+-   **Linux 平台 CMake 生成报错**
 
-- **CMake `find_package` 报错**
-    
+    保证目录下存在 build 文件夹后再执行 CMake，或执行第二遍 CMake
+
+-   **CMake `find_package` 报错**
     下载安装缺少的组件，例如 `Qt6::MultiMedia`
 
 ## 组件库
 
-- [ElaWidgetTools](https://github.com/Liniyous/ElaWidgetTools)
-
+-   [ElaWidgetTools](https://github.com/Liniyous/ElaWidgetTools)

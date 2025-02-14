@@ -1,22 +1,23 @@
 #include "MediaPreviewer.h"
-#include "..\MediaViewer.h"
-#include ".\delegate\DiskScanner.h"
+#include "delegate/DiskScanner.h"
+#include "model/MediaListModel.h"
+#include "view/MediaViewer.h"
+#include <QFileInfo>
 #include <QImageReader>
 #include <QPainter>
 #include <QPainterPath>
 #include <QPropertyAnimation>
 #include <QtConcurrentRun>
-#include <model/MediaListModel.h>
 
 MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget* parent)
     : QLabel(parent)
     , model(model)
-    , rowIndex(rowIndex)
-    , diskScanner(new DiskScanner(this)) { // Initialize diskScanner
+    , rowIndex(rowIndex) {
     filepath = model->data(model->index(rowIndex, MediaListModel::Path)).value<QString>();
     lastModified = model->data(model->index(rowIndex, MediaListModel::LastModifiedTime))
                        .value<QDateTime>();
     isFav = model->data(model->index(rowIndex, MediaListModel::IsFavorite)).value<bool>();
+    // qDebug() << "Connecting to fileModified signal for filepath:" << filepath;
     connect(&imageLoadWatcher,
             &QFutureWatcher<QPixmap*>::finished,
             this,
@@ -25,7 +26,6 @@ MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget*
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     initMedia();
     connect(this, &MediaPreviewer::doubleClicked, this, &MediaPreviewer::openMediaViewer);
-    connect(diskScanner, &DiskScanner::fileModified, this, &MediaPreviewer::onFileModified);
 }
 
 MediaPreviewer::~MediaPreviewer() {}
@@ -33,6 +33,7 @@ MediaPreviewer::~MediaPreviewer() {}
 void MediaPreviewer::paintEvent(QPaintEvent* event) {
     QLabel::paintEvent(event);
     if (requireReloadImage) {
+        qDebug() << "Reloading image for filepath:" << filepath;
         imageLoadWatcher.setFuture(QtConcurrent::run(&MediaPreviewer::loadImage, this));
         requireReloadImage = false;
     }
@@ -169,15 +170,4 @@ void MediaPreviewer::scaleAnimation(qreal startScale, qreal endScale, int durati
 void MediaPreviewer::openMediaViewer() {
     MediaViewer* viewer = new MediaViewer(model, rowIndex, nullptr);
     viewer->show();
-}
-
-void MediaPreviewer::onFileModified(const QStringList& paths) {
-    qDebug() << "onFileModified called with paths:" << paths;
-    for (const QString& path : paths) {
-        if (path == this->filepath) {
-            qDebug() << "File matched, reloading preview:" << path;
-            initMedia();
-            loadImageComplete();
-        }
-    }
 }

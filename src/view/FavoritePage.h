@@ -2,8 +2,6 @@
 
 #include "BasePage.h"
 #include "component/GalleryWidget.h"
-#include "delegate/MediaViewerDelegate.h"
-#include "model/MediaListModel.h"
 #include <QAbstractItemModel>
 
 class FavoritePage : public BasePage {
@@ -14,13 +12,8 @@ public:
     ~FavoritePage();
 
 public slots:
-    void onAddToFavoritePage(const QString& filepath);
+    void onAddToFav(const QString& path);
 
 private:
-    void updateFavoritePage();
-
-    MediaViewerDelegate* delegate;
-    GalleryWidget* galleryWidget;
-    QStringList favoriteImages;
-    MediaListModel* favoriteModel;
+    GalleryWidget* centralWidget;
 };

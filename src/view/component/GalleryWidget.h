@@ -17,8 +17,6 @@ public:
     void setModel(QAbstractItemModel* model);
     QLayout* layout(QLayout* layout);
 
-    void resetPreviewers();
-
 public slots:
 
     void onModelDataChanged(const QModelIndex& topLeft,
@@ -38,4 +36,5 @@ public slots:
 
 private:
     void initModelSignals();
+    void resetPreviewers();
 };

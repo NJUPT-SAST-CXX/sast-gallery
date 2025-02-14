@@ -60,6 +60,5 @@ void MainWindow::initModel() {
     QObject::connect(diskScanner, &DiskScanner::fileModified, mediaModel, &MediaListModel::modifiedEntries);
     QObject::connect(diskScanner, &DiskScanner::fullScan, mediaModel, &MediaListModel::resetEntries);
     // clang-format on
-
     diskScanner->scan();
 }

@@ -102,13 +102,7 @@ SettingPage::SettingPage(QWidget* parent)
     connect(wheelComboBox,
             QOverload<int>::of(&ElaComboBox::currentIndexChanged),
             this,
-            [=](int index) {
-                if (index == 0) {
-                    settings.setValue("wheelBehavior", 0);
-                } else {
-                    settings.setValue("wheelBehavior", 1);
-                }
-            });
+            [=](int index) { settings.setValue("wheelBehavior", index); });
     wheelComboBox->setCurrentIndex(settings.value("wheelBehavior").toInt());
 
     auto deletionSwitchButton = new ElaToggleSwitch(this);

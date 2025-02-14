@@ -24,7 +24,7 @@ public:
 signals:
     void scaledByWheel();
     void imageChanged(bool fadeAnimation = true);
-    void addToFavoritePage(const QString& filePath);
+    void addToFav(const QString& filePath);
 
 public slots:
     void onModelRowsToBeRemoved(const QModelIndex& parent, int first, int last);

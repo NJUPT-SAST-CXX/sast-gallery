@@ -6,7 +6,6 @@
 #include <QFileInfo>
 #include <QStandardPaths>
 
-// TODO: add filter
 DiskScanner::DiskScanner(QObject* parent)
     : QObject(parent) {
     connect(&diskWatcher, &QFileSystemWatcher::directoryChanged, [this](const QString& path) {
@@ -105,43 +104,18 @@ void DiskScanner::scanPath(const QString& path, bool fullScan) {
     qDebug() << "DiskScanner: scanning " << path;
     QStringList oldCache = fullScan ? QStringList{} : cache.value(path);
     QStringList newCache;
-    QMap<QString, QDateTime> newModTimes;
     auto&& entryInfoList = QDir(path).entryInfoList(mediaFileFilter,
                                                     QDir::Files | QDir::NoDotAndDotDot);
     for (auto&& entry : entryInfoList) {
         QString filePath = entry.absoluteFilePath();
-        //qDebug() << "Scanning file: " << filePath << ", last modified: " << entry.lastModified();
         newCache += filePath;
-        newModTimes[filePath] = entry.lastModified(); // cache current mod time
     }
     cache.insert(path, newCache);
 
-    auto&& [added, removed] = diff(oldCache, newCache);
+    auto&& [added, removed, modified] = diff(oldCache, newCache);
     pendingCreated += added;
     pendingDeleted += removed;
-
-    // Check for modified files
-    for (const auto& filePath : newCache) {
-        if (oldCache.contains(filePath)) {
-            QDateTime oldModTime = oldModTimes.value(filePath);
-            QDateTime newModTime = newModTimes[filePath];
-            //qDebug() << "Checking for modified file: " << filePath;
-            //qDebug() << "old mod time: " << oldModTime << ", new mod time: " << newModTime;
-            if (oldModTime.isValid() && oldModTime != newModTime) {
-                qDebug() << "Modified file: " << filePath;
-                pendingModified += filePath;
-            }
-        }
-    }
-
-    // update mod times cache
-    for (const auto& filePath : newCache) {
-        oldModTimes[filePath] = newModTimes[filePath];
-    }
-
-    for (const auto& filePath : removed) {
-        oldModTimes.remove(filePath); // remove mod time for removed files
-    }
+    pendingModified += modified;
 }
 
 void DiskScanner::submitChange(bool fullScan) {
@@ -153,31 +127,72 @@ void DiskScanner::submitChange(bool fullScan) {
         return;
     }
     if (pendingCreated.size() != 0) {
+        qDebug() << "DiskScanner: emitting fileCreated signal for " << pendingCreated.size()
+                 << " files";
         emit fileCreated(pendingCreated);
         pendingCreated.clear();
-    }
-    if (pendingDeleted.size() != 0) {
+    } else if (pendingDeleted.size() != 0) {
+        qDebug() << "DiskScanner: emitting fileDeleted signal for " << pendingDeleted.size()
+                 << " files";
         emit fileDeleted(pendingDeleted);
         pendingDeleted.clear();
-    }
-    if (pendingModified.size() != 0) {
-        // qDebug() << "Emitting fileModified signal for: " << pendingModified;
+    } else if (pendingModified.size() != 0) {
+        qDebug() << "DiskScanner: emitting fileModified signal for " << pendingModified.size()
+                 << " files";
         emit fileModified(pendingModified);
         pendingModified.clear();
     }
 }
 
 DiskScanner::DiffResult DiskScanner::diff(const QStringList& oldv, const QStringList& newv) {
-    QSet olds(oldv.begin(), oldv.end());
-    QSet news(newv.begin(), newv.end());
+    QSet<QString> olds(oldv.begin(), oldv.end());
+    QSet<QString> news(newv.begin(), newv.end());
+
     DiffResult res;
     res.added = [=]() {
         auto res = news - olds;
         return QStringList(res.begin(), res.end());
     }();
+
     res.removed = [=]() {
         auto res = olds - news;
         return QStringList(res.begin(), res.end());
     }();
+
+    res.modified = [=]() {
+        QStringList res;
+        for (const auto& filePath : newv) {
+            if (olds.contains(filePath)) {
+                QDateTime newModTime = QFileInfo(filePath).lastModified();
+                QDateTime oldModTime = oldModTimes.value(filePath);
+
+                if (newModTime.isValid() && oldModTime.isValid() && newModTime != oldModTime) {
+                    qDebug() << "Modified file:" << filePath;
+                    res += filePath;
+                }
+            }
+        }
+        return res;
+    }();
+
+    // Update the modification times for the next comparison
+    for (const auto& filePath : res.added) {
+        QDateTime newModTime = QFileInfo(filePath).lastModified();
+        if (newModTime.isValid()) {
+            oldModTimes[filePath] = newModTime;
+        }
+    }
+
+    for (const auto& filePath : res.modified) {
+        QDateTime newModTime = QFileInfo(filePath).lastModified();
+        if (newModTime.isValid()) {
+            oldModTimes[filePath] = newModTime;
+        }
+    }
+
+    for (const auto& filePath : res.removed) {
+        oldModTimes.remove(filePath);
+    }
+
     return res;
 }
