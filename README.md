@@ -68,3 +68,8 @@ pre-commit install
 ## 组件库
 
 -   [ElaWidgetTools](https://github.com/Liniyous/ElaWidgetTools)
+-   [ElaWidgetTools](https://github.com/Liniyous/ElaWidgetTools)
+
+## 任务和其他说明
+
+[SAST2024.C++组 Winter of Code 企划](https://njupt-sast.feishu.cn/docx/PCundVXlYoFOeixGjDlcciRwnsh)
