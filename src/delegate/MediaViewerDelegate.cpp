@@ -394,7 +394,16 @@ int MediaViewerDelegate::getScale() const {
 }
 
 void MediaViewerDelegate::openInFileExplorer() {
+#ifdef Q_OS_WIN
     QString command = "explorer.exe /select, \"" + filepath + "\"";
+#elif defined(Q_OS_MAC)
+    QString command = "open -R \"" + filepath + "\"";
+#elif defined(Q_OS_LINUX)
+    QString command = "xdg-open \"" + filepath.left(filepath.lastIndexOf('/')) + "\"";
+#else
+#error "Unsupported OS"
+#endif
+
     QProcess::startDetached(command);
 }
 
