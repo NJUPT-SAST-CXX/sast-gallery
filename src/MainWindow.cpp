@@ -45,7 +45,7 @@ void MainWindow::initModel() {
 
     galleryModel = new QSortFilterProxyModel();
     galleryModel->setSourceModel(mediaModel);
-    galleryModel->sort(MediaListModel::LastModifiedTime);
+    galleryModel->sort(MediaListModel::LastModifiedTime, Qt::DescendingOrder);
 
     favoriteModel = new QSortFilterProxyModel();
     favoriteModel->setSourceModel(galleryModel);
