@@ -12,16 +12,6 @@ FavoritePage::FavoritePage(QAbstractItemModel* model, QWidget* parent)
     centralWidget->setWindowTitle("Favorites");
 
     addCentralWidget(centralWidget);
-
-    auto* delegate = new MediaViewerDelegate(model, 0, nullptr, this);
-    connect(delegate, &MediaViewerDelegate::addToFav, this, &FavoritePage::onAddToFav);
 }
 
 FavoritePage::~FavoritePage() {}
-
-void FavoritePage::onAddToFav(const QString& path) {
-    auto* model = centralWidget->model();
-    auto index = model->index(model->rowCount() - 1, 0);
-    model->setData(index, true, MediaListModel::IsFavorite);
-    centralWidget->setModel(model);
-}

@@ -131,12 +131,14 @@ void DiskScanner::submitChange(bool fullScan) {
                  << " files";
         emit fileCreated(pendingCreated);
         pendingCreated.clear();
-    } else if (pendingDeleted.size() != 0) {
+    }
+    if (pendingDeleted.size() != 0) {
         qDebug() << "DiskScanner: emitting fileDeleted signal for " << pendingDeleted.size()
                  << " files";
         emit fileDeleted(pendingDeleted);
         pendingDeleted.clear();
-    } else if (pendingModified.size() != 0) {
+    }
+    if (pendingModified.size() != 0) {
         qDebug() << "DiskScanner: emitting fileModified signal for " << pendingModified.size()
                  << " files";
         emit fileModified(pendingModified);
@@ -176,14 +178,7 @@ DiskScanner::DiffResult DiskScanner::diff(const QStringList& oldv, const QString
     }();
 
     // Update the modification times for the next comparison
-    for (const auto& filePath : res.added) {
-        QDateTime newModTime = QFileInfo(filePath).lastModified();
-        if (newModTime.isValid()) {
-            oldModTimes[filePath] = newModTime;
-        }
-    }
-
-    for (const auto& filePath : res.modified) {
+    for (const auto& filePath : res.added + res.modified) {
         QDateTime newModTime = QFileInfo(filePath).lastModified();
         if (newModTime.isValid()) {
             oldModTimes[filePath] = newModTime;
