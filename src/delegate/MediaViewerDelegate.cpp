@@ -4,21 +4,21 @@
 #include <ElaText.h>
 #include <QApplication>
 #include <QClipboard>
+#include <QDesktopServices>
+#include <QDir>
 #include <QFile>
 #include <QFileDialog>
 #include <QGuiApplication>
 #include <QImageReader>
 #include <QPaintDevice>
+#include <QProcess>
 #include <QScreen>
+#include <QUrl>
 #include <QtConcurrent>
 #include <model/MediaListModel.h>
 #include <utils/Settings.hpp>
 #include <utils/Tools.h>
 #include <view/MediaViewer.h>
-#include <QDesktopServices>
-#include <QUrl>
-#include <QDir>
-#include <QProcess>
 
 MediaViewerDelegate::MediaViewerDelegate(QAbstractItemModel* model,
                                          int index,
@@ -130,8 +130,10 @@ void MediaViewerDelegate::initConnections() {
             this,
             &MediaViewerDelegate::onWheelScrolled);
 
-    connect(view->openInFileExplorerAction, &QAction::triggered, 
-            this, &MediaViewerDelegate::openInFileExplorer);
+    connect(view->openInFileExplorerAction,
+            &QAction::triggered,
+            this,
+            &MediaViewerDelegate::openInFileExplorer);
 }
 
 void MediaViewerDelegate::onModelRowsToBeRemoved(const QModelIndex& parent, int first, int last) {
@@ -402,9 +404,9 @@ void MediaViewerDelegate::openInFileExplorer() {
         QProcess::startDetached(explorer, params);
     } else {
         ElaMessageBar::error(ElaMessageBarType::Bottom,
-                           "File not found!",
-                           nullptr,
-                           2000,
-                           view->imageViewer);
+                             "File not found!",
+                             nullptr,
+                             2000,
+                             view->imageViewer);
     }
 }
