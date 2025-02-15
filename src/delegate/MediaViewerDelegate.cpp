@@ -33,6 +33,10 @@ MediaViewerDelegate::MediaViewerDelegate(QAbstractItemModel* model,
 }
 
 void MediaViewerDelegate::initConnections() {
+    if (view && view->likeButton) {
+        updateLikeButtonState();
+    }
+
     // connect to actions
     connect(mediaListModel,
             &QAbstractItemModel::rowsAboutToBeRemoved,
@@ -71,9 +75,6 @@ void MediaViewerDelegate::initConnections() {
             this,
             &MediaViewerDelegate::saveImageFileDialog);
 
-    //TODO(must): implement the openInFileExplorer functionality
-    //connect(openInFileExplorerAction,......)
-
     connect(view->rotateAction, &QAction::triggered, this, &MediaViewerDelegate::rotateImage);
 
     connect(view->deleteAction, &QAction::triggered, this, &MediaViewerDelegate::deleteImage);
@@ -90,9 +91,15 @@ void MediaViewerDelegate::initConnections() {
 
     connect(view->nextAction, &QAction::triggered, this, &MediaViewerDelegate::nextImage);
 
-    connect(view->likeButton, &ElaIconButton::clicked, this, [=]() {
-        //TODO(must): implement the like functionality
-        // add the image to Favorite Page
+    connect(view->likeButton, &ElaIconButton::clicked, this, [this]() {
+        bool currentState = mediaListModel
+                                ->data(mediaListModel->index(mediaIndex.row(),
+                                                             MediaListModel::IsFavorite))
+                                .toBool();
+        mediaListModel->setData(mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite),
+                                !currentState,
+                                Qt::EditRole);
+        updateLikeButtonState();
     });
 
     connect(view->fileInfoButton,
@@ -152,6 +159,7 @@ void MediaViewerDelegate::onModelRowsToBeRemoved(const QModelIndex& parent, int 
 }
 
 void MediaViewerDelegate::onImageChanged(bool fadeAnimation) {
+    updateLikeButtonState();
     view->imageViewer->setContent(image, fadeAnimation);
     view->fileInfoBriefText->setText(QString("%1 x %2 %3")
                                          .arg(QString::number(image.width()))
@@ -408,5 +416,28 @@ void MediaViewerDelegate::openInFileExplorer() {
                              nullptr,
                              2000,
                              view->imageViewer);
+    }
+}
+
+void MediaViewerDelegate::updateLikeButtonState() {
+    QModelIndex favoriteIndex = mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite);
+
+    bool isFavorite = mediaListModel->data(favoriteIndex).toBool();
+
+    if (view && view->likeButton) {
+        view->likeButton->setChecked(isFavorite);
+        if (isFavorite) {
+            // favorite state: normal is pink, hover is pinker
+            view->likeButton->setLightIconColor(QColor("#FF4081"));
+            view->likeButton->setDarkIconColor(QColor("#FF4081"));
+            view->likeButton->setLightHoverIconColor(QColor("#E91E63"));    
+            view->likeButton->setDarkHoverIconColor(QColor("#E91E63"));
+        } else {
+            // not favorite state: normal mode as others
+            view->likeButton->setLightIconColor(QColor("#000000"));
+            view->likeButton->setDarkIconColor(QColor("#ffffff"));
+            view->likeButton->setLightHoverIconColor(QColor("#000000"));
+            view->likeButton->setDarkHoverIconColor(QColor("#ffffff"));
+        }
     }
 }

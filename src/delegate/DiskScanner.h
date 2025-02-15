@@ -34,7 +34,7 @@ signals:
     void fullScan(const QStringList& filePath);
     void fileCreated(const QStringList& filePath);
     void fileDeleted(const QStringList& filePath);
-    void fileModified(const QStringList& filePath); // TODO: detect file modified
+    void fileModified(const QStringList& filePath);
 
 private:
     bool initScanComplete = true;

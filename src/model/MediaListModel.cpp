@@ -1,11 +1,24 @@
 #include "MediaListModel.h"
 #include <QDebug>
 #include <QDir>
+#include <QFile>
+#include <QTextStream>
 
 MediaListModel::MediaListModel(QObject* parent)
-    : QAbstractTableModel(parent) {}
+    : QAbstractTableModel(parent) {
+    QDir appDir = QDir::current();
+    favoriteFilePath = appDir.absoluteFilePath("data/favorites.txt");
+    // ensure the directory exists
+    QDir dir(QFileInfo(favoriteFilePath).path());
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+    loadFavorites();
+}
 
-MediaListModel::~MediaListModel() {}
+MediaListModel::~MediaListModel() {
+    saveFavorites();
+}
 
 int MediaListModel::rowCount(const QModelIndex& parent) const {
     return path.size();
@@ -70,10 +83,13 @@ bool MediaListModel::setData(const QModelIndex& index, const QVariant& value, in
         if (value.value<bool>()) {
             isFavorite.insert(path.value(index.row()));
             dataChanged(index, index);
+            saveFavorites(); // save the changes
         } else {
             isFavorite.remove(path.value(index.row()));
             dataChanged(index, index);
+            saveFavorites(); // save the changes
         }
+        return true; // return true to indicate the data has been changed successfully
     }
     return false;
 }
@@ -131,5 +147,30 @@ void MediaListModel::modifiedEntries(const QStringList& paths) {
 
         qDebug() << "MediaListModel::modifiedEntries - Updated row" << row
                  << "with new modification time:" << fileInfo.lastModified();
+    }
+}
+
+void MediaListModel::loadFavorites() {
+    QFile file(favoriteFilePath);
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QTextStream in(&file);
+        while (!in.atEnd()) {
+            QString line = in.readLine().trimmed();
+            if (!line.isEmpty()) {
+                isFavorite.insert(line);
+            }
+        }
+        file.close();
+    }
+}
+
+void MediaListModel::saveFavorites() {
+    QFile file(favoriteFilePath);
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&file);
+        for (const QString& path : qAsConst(isFavorite)) {
+            out << path << "\n";
+        }
+        file.close();
     }
 }
