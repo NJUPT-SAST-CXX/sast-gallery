@@ -4,12 +4,16 @@
 #include <ElaText.h>
 #include <QApplication>
 #include <QClipboard>
+#include <QDesktopServices>
+#include <QDir>
 #include <QFile>
 #include <QFileDialog>
 #include <QGuiApplication>
 #include <QImageReader>
 #include <QPaintDevice>
+#include <QProcess>
 #include <QScreen>
+#include <QUrl>
 #include <QtConcurrent>
 #include <model/MediaListModel.h>
 #include <utils/Settings.hpp>
@@ -29,6 +33,10 @@ MediaViewerDelegate::MediaViewerDelegate(QAbstractItemModel* model,
 }
 
 void MediaViewerDelegate::initConnections() {
+    if (view && view->likeButton) {
+        updateLikeButtonState();
+    }
+
     // connect to actions
     connect(mediaListModel,
             &QAbstractItemModel::rowsAboutToBeRemoved,
@@ -67,9 +75,6 @@ void MediaViewerDelegate::initConnections() {
             this,
             &MediaViewerDelegate::saveImageFileDialog);
 
-    //TODO(must): implement the openInFileExplorer functionality
-    //connect(openInFileExplorerAction,......)
-
     connect(view->rotateAction, &QAction::triggered, this, &MediaViewerDelegate::rotateImage);
 
     connect(view->deleteAction, &QAction::triggered, this, &MediaViewerDelegate::deleteImage);
@@ -86,9 +91,15 @@ void MediaViewerDelegate::initConnections() {
 
     connect(view->nextAction, &QAction::triggered, this, &MediaViewerDelegate::nextImage);
 
-    connect(view->likeButton, &ElaIconButton::clicked, this, [=]() {
-        //TODO(must): implement the like functionality
-        // add the image to Favorite Page
+    connect(view->likeButton, &ElaIconButton::clicked, this, [this]() {
+        bool currentState = mediaListModel
+                                ->data(mediaListModel->index(mediaIndex.row(),
+                                                             MediaListModel::IsFavorite))
+                                .toBool();
+        mediaListModel->setData(mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite),
+                                !currentState,
+                                Qt::EditRole);
+        updateLikeButtonState();
     });
 
     connect(view->fileInfoButton,
@@ -125,6 +136,11 @@ void MediaViewerDelegate::initConnections() {
             &ImageViewer::wheelScrolled,
             this,
             &MediaViewerDelegate::onWheelScrolled);
+
+    connect(view->openInFileExplorerAction,
+            &QAction::triggered,
+            this,
+            &MediaViewerDelegate::openInFileExplorer);
 }
 
 void MediaViewerDelegate::onModelRowsToBeRemoved(const QModelIndex& parent, int first, int last) {
@@ -143,6 +159,7 @@ void MediaViewerDelegate::onModelRowsToBeRemoved(const QModelIndex& parent, int 
 }
 
 void MediaViewerDelegate::onImageChanged(bool fadeAnimation) {
+    updateLikeButtonState();
     view->imageViewer->setContent(image, fadeAnimation);
     view->fileInfoBriefText->setText(QString("%1 x %2 %3")
                                          .arg(QString::number(image.width()))
@@ -259,8 +276,7 @@ void MediaViewerDelegate::adaptiveResize() {
 }
 
 void MediaViewerDelegate::deleteImage() {
-    if (settings.value("confirmDeletion").toBool()) {
-        // ask before deletion
+    if (settings.value("askForDeletionPermission").toBool()) {
         auto* confirmDialog = new ElaContentDialog(view);
         confirmDialog->setWindowTitle("Confirm Deletion");
         auto* centralWidget = new QWidget(view);
@@ -281,7 +297,11 @@ void MediaViewerDelegate::deleteImage() {
         connect(confirmDialog, &ElaContentDialog::middleButtonClicked, this, [=, this]() {
             confirmDialog->close();
         });
+        connect(confirmDialog, &ElaContentDialog::leftButtonClicked, this, [=, this]() {
+            confirmDialog->close();
+        });
         connect(confirmDialog, &ElaContentDialog::rightButtonClicked, this, [=, this]() {
+            confirmDialog->close();
             if (!QFile(filepath).remove()) {
                 ElaMessageBar::error(ElaMessageBarType::Bottom,
                                      "Delete failed!",
@@ -381,4 +401,43 @@ void MediaViewerDelegate::scaleTo(int percent) {
 
 int MediaViewerDelegate::getScale() const {
     return view->imageViewer->getScale();
+}
+
+void MediaViewerDelegate::openInFileExplorer() {
+    QFileInfo fileInfo(filepath);
+    if (fileInfo.exists()) {
+        QString explorer = "explorer.exe";
+        QStringList params;
+        params << "/select," << QDir::toNativeSeparators(filepath);
+        QProcess::startDetached(explorer, params);
+    } else {
+        ElaMessageBar::error(ElaMessageBarType::Bottom,
+                             "File not found!",
+                             nullptr,
+                             2000,
+                             view->imageViewer);
+    }
+}
+
+void MediaViewerDelegate::updateLikeButtonState() {
+    QModelIndex favoriteIndex = mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite);
+
+    bool isFavorite = mediaListModel->data(favoriteIndex).toBool();
+
+    if (view && view->likeButton) {
+        view->likeButton->setChecked(isFavorite);
+        if (isFavorite) {
+            // favorite state: normal is pink, hover is pinker
+            view->likeButton->setLightIconColor(QColor("#FF4081"));
+            view->likeButton->setDarkIconColor(QColor("#FF4081"));
+            view->likeButton->setLightHoverIconColor(QColor("#E91E63"));
+            view->likeButton->setDarkHoverIconColor(QColor("#E91E63"));
+        } else {
+            // not favorite state: normal mode as others
+            view->likeButton->setLightIconColor(QColor("#000000"));
+            view->likeButton->setDarkIconColor(QColor("#ffffff"));
+            view->likeButton->setLightHoverIconColor(QColor("#000000"));
+            view->likeButton->setDarkHoverIconColor(QColor("#ffffff"));
+        }
+    }
 }

@@ -1,10 +1,24 @@
 #include "MediaListModel.h"
+#include <QDebug>
 #include <QDir>
+#include <QFile>
+#include <QTextStream>
 
 MediaListModel::MediaListModel(QObject* parent)
-    : QAbstractTableModel(parent) {}
+    : QAbstractTableModel(parent) {
+    QDir appDir = QDir::current();
+    favoriteFilePath = appDir.absoluteFilePath("data/favorites.txt");
+    // ensure the directory exists
+    QDir dir(QFileInfo(favoriteFilePath).path());
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+    loadFavorites();
+}
 
-MediaListModel::~MediaListModel() {}
+MediaListModel::~MediaListModel() {
+    saveFavorites();
+}
 
 int MediaListModel::rowCount(const QModelIndex& parent) const {
     return path.size();
@@ -69,10 +83,13 @@ bool MediaListModel::setData(const QModelIndex& index, const QVariant& value, in
         if (value.value<bool>()) {
             isFavorite.insert(path.value(index.row()));
             dataChanged(index, index);
+            saveFavorites(); // save the changes
         } else {
             isFavorite.remove(path.value(index.row()));
             dataChanged(index, index);
+            saveFavorites(); // save the changes
         }
+        return true; // return true to indicate the data has been changed successfully
     }
     return false;
 }
@@ -107,9 +124,53 @@ void MediaListModel::removeEntries(const QStringList& paths) {
 }
 
 void MediaListModel::modifiedEntries(const QStringList& paths) {
+    qDebug() << "MediaListModel::modifiedEntries - Updating" << paths.size() << "files";
+
     for (auto& filePath : paths) {
         auto row = path.indexOf(filePath);
-        lastModifiedTime.replace(row, QFileInfo(filePath).lastModified());
-        dataChanged(index(row, Property::LastModifiedTime), index(row, Property::LastModifiedTime));
+        if (row == -1) {
+            qWarning() << "MediaListModel::modifiedEntries - File not found:" << filePath;
+            continue;
+        }
+
+        QFileInfo fileInfo(filePath);
+        if (!fileInfo.exists()) {
+            qWarning() << "MediaListModel::modifiedEntries - File no longer exists:" << filePath;
+            continue;
+        }
+
+        lastModifiedTime.replace(row, fileInfo.lastModified());
+        // 发出所有相关列的变化信号
+        emit dataChanged(index(row, Property::Path),
+                         index(row, Property::LastModifiedTime),
+                         {Qt::DisplayRole, Qt::EditRole});
+
+        qDebug() << "MediaListModel::modifiedEntries - Updated row" << row
+                 << "with new modification time:" << fileInfo.lastModified();
+    }
+}
+
+void MediaListModel::loadFavorites() {
+    QFile file(favoriteFilePath);
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QTextStream in(&file);
+        while (!in.atEnd()) {
+            QString line = in.readLine().trimmed();
+            if (!line.isEmpty()) {
+                isFavorite.insert(line);
+            }
+        }
+        file.close();
+    }
+}
+
+void MediaListModel::saveFavorites() {
+    QFile file(favoriteFilePath);
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&file);
+        for (const QString& path : qAsConst(isFavorite)) {
+            out << path << "\n";
+        }
+        file.close();
     }
 }
