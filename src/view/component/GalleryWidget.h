@@ -2,12 +2,14 @@
 #include "MediaFlexLayout.h"
 #include <QAbstractItemModel>
 #include <QWidget>
+#include <array>
 
 class GalleryWidget : public QWidget {
     Q_OBJECT
 
     MediaFlexLayout* mediaLayout;
     QAbstractItemModel* mediaListModel;
+    std::array<QMetaObject::Connection, 6> connections;
 
 public:
     GalleryWidget(QAbstractItemModel* model, QWidget* parent = nullptr);

@@ -1,4 +1,5 @@
 #include "MediaListModel.h"
+#include <QDebug>
 #include <QDir>
 
 MediaListModel::MediaListModel(QObject* parent)
@@ -107,9 +108,28 @@ void MediaListModel::removeEntries(const QStringList& paths) {
 }
 
 void MediaListModel::modifiedEntries(const QStringList& paths) {
+    qDebug() << "MediaListModel::modifiedEntries - Updating" << paths.size() << "files";
+
     for (auto& filePath : paths) {
         auto row = path.indexOf(filePath);
-        lastModifiedTime.replace(row, QFileInfo(filePath).lastModified());
-        dataChanged(index(row, Property::LastModifiedTime), index(row, Property::LastModifiedTime));
+        if (row == -1) {
+            qWarning() << "MediaListModel::modifiedEntries - File not found:" << filePath;
+            continue;
+        }
+
+        QFileInfo fileInfo(filePath);
+        if (!fileInfo.exists()) {
+            qWarning() << "MediaListModel::modifiedEntries - File no longer exists:" << filePath;
+            continue;
+        }
+
+        lastModifiedTime.replace(row, fileInfo.lastModified());
+        // 发出所有相关列的变化信号
+        emit dataChanged(index(row, Property::Path),
+                         index(row, Property::LastModifiedTime),
+                         {Qt::DisplayRole, Qt::EditRole});
+
+        qDebug() << "MediaListModel::modifiedEntries - Updated row" << row
+                 << "with new modification time:" << fileInfo.lastModified();
     }
 }
