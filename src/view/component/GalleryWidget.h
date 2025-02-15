@@ -1,5 +1,6 @@
 #pragma once
 #include "MediaFlexLayout.h"
+#include "model/MediaListModel.h"
 #include <QAbstractItemModel>
 #include <QWidget>
 
@@ -33,6 +34,7 @@ public slots:
                           int destinationRow);
     void onModelRowsInserted(const QModelIndex& parent, int first, int last);
     void onModelRowsRemoved(const QModelIndex& parent, int first, int last);
+
 
 private:
     void initModelSignals();

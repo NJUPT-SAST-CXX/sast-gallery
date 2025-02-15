@@ -24,6 +24,7 @@ public:
 signals:
     void scaledByWheel();
     void imageChanged(bool fadeAnimation = true);
+    void imageSaved();
 
 public slots:
     void onModelRowsToBeRemoved(const QModelIndex& parent, int first, int last);

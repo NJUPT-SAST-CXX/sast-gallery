@@ -13,6 +13,8 @@ class MediaListModel : public QAbstractTableModel {
     QList<QDateTime> lastModifiedTime;
     QSet<QString> isFavorite;
 
+
+
 public:
     MediaListModel(QObject* parent = nullptr);
     ~MediaListModel();
@@ -23,6 +25,10 @@ public:
     Qt::ItemFlags flags(const QModelIndex& index) const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
     bool setData(const QModelIndex& index, const QVariant& value, int role) override;
+
+    //
+    QList<QString>& getPath();
+    void saveFavourite();
 
     enum Property { Path = 0, LastModifiedTime = 1, IsFavorite = 2 };
 

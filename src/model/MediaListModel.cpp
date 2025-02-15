@@ -1,5 +1,6 @@
 #include "MediaListModel.h"
 #include <QDir>
+#include <QList>
 
 MediaListModel::MediaListModel(QObject* parent)
     : QAbstractTableModel(parent) {}
@@ -68,10 +69,10 @@ bool MediaListModel::setData(const QModelIndex& index, const QVariant& value, in
     if (role == Qt::EditRole) {
         if (value.value<bool>()) {
             isFavorite.insert(path.value(index.row()));
-            dataChanged(index, index);
+            emit dataChanged(index, index);
         } else {
             isFavorite.remove(path.value(index.row()));
-            dataChanged(index, index);
+            emit dataChanged(index, index);
         }
     }
     return false;
@@ -89,11 +90,13 @@ void MediaListModel::resetEntries(const QStringList& paths) {
 
 void MediaListModel::appendEntries(const QStringList& paths) {
     beginInsertRows({}, path.size(), path.size() + paths.size() - 1);
+    auto row=path.size();
     path += paths;
     for (auto& filePath : paths) {
         lastModifiedTime += QFileInfo(filePath).lastModified();
     }
     endInsertRows();
+    //emit dataChanged(index(row, Property::Path), index(row + paths.size() - 1, Property::LastModifiedTime));
 }
 
 void MediaListModel::removeEntries(const QStringList& paths) {
@@ -110,6 +113,20 @@ void MediaListModel::modifiedEntries(const QStringList& paths) {
     for (auto& filePath : paths) {
         auto row = path.indexOf(filePath);
         lastModifiedTime.replace(row, QFileInfo(filePath).lastModified());
-        dataChanged(index(row, Property::LastModifiedTime), index(row, Property::LastModifiedTime));
+        emit dataChanged(index(row, Property::LastModifiedTime), index(row, Property::LastModifiedTime));
+    }
+}
+
+//
+QList<QString>& MediaListModel::getPath(){
+    return path;
+}
+
+void MediaListModel::saveFavourite(){
+    QFile file("favourite.data");
+    if(file.open(QIODevice::WriteOnly)){
+        QDataStream out(&file);
+        out<<isFavorite;
+        file.close();
     }
 }

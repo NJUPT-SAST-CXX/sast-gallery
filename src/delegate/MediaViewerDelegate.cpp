@@ -15,6 +15,7 @@
 #include <utils/Settings.hpp>
 #include <utils/Tools.h>
 #include <view/MediaViewer.h>
+#include <QSortFilterProxyModel>
 
 MediaViewerDelegate::MediaViewerDelegate(QAbstractItemModel* model,
                                          int index,
@@ -68,7 +69,12 @@ void MediaViewerDelegate::initConnections() {
             &MediaViewerDelegate::saveImageFileDialog);
 
     //TODO(must): implement the openInFileExplorer functionality
-    //connect(openInFileExplorerAction,......)
+    connect(view->openInFileExplorerAction,
+            &QAction::triggered,
+            this, [this]() {
+                QString nativePath = QDir::toNativeSeparators(filepath);
+                QProcess::startDetached("explorer.exe", QStringList() << "/select," + nativePath);
+    });
 
     connect(view->rotateAction, &QAction::triggered, this, &MediaViewerDelegate::rotateImage);
 
@@ -86,9 +92,20 @@ void MediaViewerDelegate::initConnections() {
 
     connect(view->nextAction, &QAction::triggered, this, &MediaViewerDelegate::nextImage);
 
-    connect(view->likeButton, &ElaIconButton::clicked, this, [=]() {
+    connect(view->likeButton, &ElaIconButton::clicked, this, [=, this]() {
         //TODO(must): implement the like functionality
         // add the image to Favorite Page
+        auto path=getFilePath();
+        auto id=mediaListModel->index(mediaIndex.row(),MediaListModel::IsFavorite);
+        mediaListModel->setData(id,!mediaListModel->data(id).toBool());
+        if(!mediaListModel->data(mediaListModel->index(mediaIndex.row(),MediaListModel::IsFavorite)).toBool()){
+            view->likeButton->setAwesome(ElaIconType::Heart);
+        }
+        else view->likeButton->setAwesome(ElaIconType::HeartCirclePlus);
+
+        auto m=static_cast<QSortFilterProxyModel*>(mediaListModel)->sourceModel();
+        static_cast<MediaListModel*>(m)->saveFavourite();
+
     });
 
     connect(view->fileInfoButton,
@@ -157,7 +174,8 @@ void MediaViewerDelegate::onWheelScrolled(int delta) {
     if (settings.value("wheelBehavior").toInt() == 0) {
         const double scaleFactor = std::abs(delta) / 100.0;
         scaleTo(view->imageViewer->getScale() + delta / 10);
-        emit scaledByWheel();
+        //emit scaledByWheel();
+        view->zoomSlider->setValue(getScale());
     } else {
         if (delta > 0) {
             prevImage();
@@ -205,6 +223,8 @@ void MediaViewerDelegate::saveImageFileDialog() {
     if (!filepath.isEmpty()) {
         this->image.save(filepath);
     }
+    //
+    emit imageSaved();
 }
 
 void MediaViewerDelegate::onFileInfoClicked() {
@@ -322,6 +342,12 @@ void MediaViewerDelegate::prevImage() {
     }
     filepath = mediaIndex.data().value<QString>();
     loadImage(filepath);
+    //
+    if(!mediaListModel->data(mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite)).toBool()){
+        view->likeButton->setAwesome(ElaIconType::Heart);
+    }
+    else view->likeButton->setAwesome(ElaIconType::HeartCirclePlus);
+
 }
 
 void MediaViewerDelegate::nextImage() {
@@ -332,6 +358,12 @@ void MediaViewerDelegate::nextImage() {
     }
     filepath = mediaIndex.data().value<QString>();
     loadImage(filepath);
+    //
+    if(!mediaListModel->data(mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite)).toBool()){
+        view->likeButton->setAwesome(ElaIconType::Heart);
+    }
+    else view->likeButton->setAwesome(ElaIconType::HeartCirclePlus);
+
 }
 
 void MediaViewerDelegate::rotateImage() {

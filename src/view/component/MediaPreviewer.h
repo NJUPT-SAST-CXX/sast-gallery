@@ -31,11 +31,15 @@ signals:
 
 public slots:
     void loadImageComplete();
+    void on_doubleClicked();
 
 private:
     QString filepath;
     QDateTime lastModified;
     bool isFav;
+    //
+    int _index;
+    QAbstractItemModel* _model;
 
     QSize mediaSize;
 

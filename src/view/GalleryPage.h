@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BasePage.h"
+#include "model/MediaListModel.h"
 #include <QAbstractItemModel>
 
 class GalleryPage : public BasePage {

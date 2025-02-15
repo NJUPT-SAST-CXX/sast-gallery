@@ -30,7 +30,7 @@ QLayout* GalleryWidget::layout(QLayout* layout) {
 void GalleryWidget::onModelDataChanged(const QModelIndex& topLeft,
                                        const QModelIndex& bottomRight,
                                        const QList<int>& roles) {
-    qDebug() << "onModelDataChanged\t" << topLeft << bottomRight;
+    qDebug() << "链接onModelDataChanged\t" << topLeft << bottomRight;
     for (int row = topLeft.row(); row <= bottomRight.row(); row++) {
         for (int col = topLeft.column(); col <= bottomRight.column(); col++) {
             auto* item = mediaLayout->itemAt(row);
@@ -98,9 +98,9 @@ void GalleryWidget::onModelRowsRemoved(const QModelIndex& parent, int first, int
 void GalleryWidget::initModelSignals() {
     static std::array<QMetaObject::Connection, 6> connections;
 
-    for (auto& connection : connections) {
-        disconnect(connection);
-    }
+    // for (auto& connection : connections) {
+    //     disconnect(connection);
+    // }
 
     connections = {
         // clang-format off

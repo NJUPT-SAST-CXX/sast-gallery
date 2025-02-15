@@ -19,6 +19,8 @@ public:
     void initWindow();
     void initContent();
     void initModel();
+    //
+    void loadFavourite();
 
 private:
     // pages
