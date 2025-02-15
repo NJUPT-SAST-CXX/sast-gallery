@@ -23,6 +23,7 @@ public:
     void initContent();
 
 private:
+    bool isFavorite = false;
     QAction* rotateAction{};
     QAction* deleteAction{};
     QAction* printAction{};

@@ -52,4 +52,5 @@ private:
     bool loadImage(const QImage& image, bool fadeAnimation = true);
     void scaleTo(int percent);
     [[nodiscard]] int getScale() const;
+    void updateLikeButtonState();
 };
