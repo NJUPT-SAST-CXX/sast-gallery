@@ -30,17 +30,13 @@ QLayout* GalleryWidget::layout(QLayout* layout) {
 void GalleryWidget::onModelDataChanged(const QModelIndex& topLeft,
                                        const QModelIndex& bottomRight,
                                        const QList<int>& roles) {
-
     for (int row = topLeft.row(); row <= bottomRight.row(); row++) {
         for (int col = topLeft.column(); col <= bottomRight.column(); col++) {
             auto* item = mediaLayout->itemAt(row);
 
-
             auto index = mediaListModel->index(row, col);
 
-
             auto data = mediaListModel->data(index);
-
 
             auto* previewer = dynamic_cast<MediaPreviewer*>(item->widget());
 
@@ -73,7 +69,6 @@ void GalleryWidget::onModelRowsMoved(const QModelIndex& sourceParent,
                                      int sourceEnd,
                                      const QModelIndex& destinationParent,
                                      int destinationRow) {
-
     QList<QWidget*> movedList;
     for (int i = sourceStart; i <= sourceEnd; i++) {
         auto* item = mediaLayout->takeAt(sourceStart);
@@ -87,7 +82,6 @@ void GalleryWidget::onModelRowsMoved(const QModelIndex& sourceParent,
 }
 
 void GalleryWidget::onModelRowsInserted(const QModelIndex& parent, int first, int last) {
-
     QList<QWidget*> insertList;
     for (int i = first; i <= last; i++) {
         auto* previewer = new MediaPreviewer(mediaListModel, i);
@@ -97,7 +91,6 @@ void GalleryWidget::onModelRowsInserted(const QModelIndex& parent, int first, in
 }
 
 void GalleryWidget::onModelRowsRemoved(const QModelIndex& parent, int first, int last) {
-
     int i = last - first + 1;
     while (i-- > 0) {
         auto* item = mediaLayout->takeAt(first);
