@@ -44,6 +44,9 @@ private:
 
     QPixmap originalPixmap;
 
+    QAbstractItemModel* model;
+    int row;
+
     void initMedia();
     static QPixmap roundedPixmap(const QPixmap& original, double radius);
     QPixmap loadImage();

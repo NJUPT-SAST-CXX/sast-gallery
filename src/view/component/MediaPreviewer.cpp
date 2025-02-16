@@ -1,4 +1,5 @@
 #include "MediaPreviewer.h"
+#include "../MediaViewer.h"
 #include <QImageReader>
 #include <QPainter>
 #include <QPainterPath>
@@ -7,7 +8,9 @@
 #include <model/MediaListModel.h>
 
 MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget* parent)
-    : QLabel(parent) {
+    : QLabel(parent)
+    , model(model)
+    , row(rowIndex) {
     filepath = model->data(model->index(rowIndex, MediaListModel::Path)).value<QString>();
     lastModified = model->data(model->index(rowIndex, MediaListModel::LastModifiedTime))
                        .value<QDateTime>();
@@ -113,6 +116,9 @@ void MediaPreviewer::mouseReleaseEvent(QMouseEvent* event) {
 
 void MediaPreviewer::mouseDoubleClickEvent(QMouseEvent* event) {
     QLabel::mouseDoubleClickEvent(event);
+    auto* viewer = new MediaViewer(model, row);
+    viewer->setAttribute(Qt::WA_DeleteOnClose);
+    viewer->show();
     emit doubleClicked();
 }
 
