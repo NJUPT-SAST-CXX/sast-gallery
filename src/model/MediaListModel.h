@@ -26,6 +26,14 @@ public:
 
     enum Property { Path = 0, LastModifiedTime = 1, IsFavorite = 2 };
 
+    // 添加新的公共方法
+    void saveFavorites() const;
+    void loadFavorites();
+    bool toggleFavorite(const QString& path);
+    bool isFavoriteFile(const QString& path) const;
+
+    static const QString FAVORITES_FILE;
+
 public slots:
 
     // for signals from disk scanner

@@ -2,6 +2,7 @@
 #include <QFileSystemWatcher>
 #include <QMap>
 #include <QObject>
+#include <QDateTime>
 
 // scan&watch media in specific path, and update ImageList
 
@@ -127,4 +128,14 @@ private:
         // "*.f4a",
         // "*.f4b",
     };
+
+    // 缓存文件的最后修改时间
+    QMap<QString, QDateTime> lastModifiedTimeCache;
+    
+    // 检查文件是否被修改
+    bool isFileModified(const QString& filePath);
+    // 更新文件的最后修改时间缓存
+    void updateModifiedTimeCache(const QString& filePath);
+    // 更新多个文件的最后修改时间缓存
+    void updateModifiedTimeCache(const QStringList& filePaths);
 };

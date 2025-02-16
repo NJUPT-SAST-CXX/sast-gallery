@@ -15,6 +15,10 @@
 #include <utils/Settings.hpp>
 #include <utils/Tools.h>
 #include <view/MediaViewer.h>
+#include <QDesktopServices>
+#include <QUrl>
+#include <QFileInfo>
+#include <QDir>
 
 MediaViewerDelegate::MediaViewerDelegate(QAbstractItemModel* model,
                                          int index,
@@ -67,8 +71,10 @@ void MediaViewerDelegate::initConnections() {
             this,
             &MediaViewerDelegate::saveImageFileDialog);
 
-    //TODO(must): implement the openInFileExplorer functionality
-    //connect(openInFileExplorerAction,......)
+    connect(view->openInFileExplorerAction, 
+            &QAction::triggered, 
+            this, 
+            &MediaViewerDelegate::openInFileExplorer);
 
     connect(view->rotateAction, &QAction::triggered, this, &MediaViewerDelegate::rotateImage);
 
@@ -87,8 +93,27 @@ void MediaViewerDelegate::initConnections() {
     connect(view->nextAction, &QAction::triggered, this, &MediaViewerDelegate::nextImage);
 
     connect(view->likeButton, &ElaIconButton::clicked, this, [=]() {
-        //TODO(must): implement the like functionality
-        // add the image to Favorite Page
+        qDebug() << "Like button clicked for file:" << filepath;
+        
+        auto* model = qobject_cast<MediaListModel*>(mediaListModel);
+        if (!model) {
+            qDebug() << "Failed to cast model to MediaListModel";
+            return;
+        }
+
+        bool newState = model->toggleFavorite(filepath);
+        qDebug() << "New favorite state:" << newState;
+        
+        view->likeButton->setChecked(newState);
+        
+        QString message = newState ? "Added to favorites!" : "Removed from favorites!";
+        ElaMessageBar::success(
+            ElaMessageBarType::Bottom,
+            message,
+            nullptr,
+            2000,
+            view->imageViewer
+        );
     });
 
     connect(view->fileInfoButton,
@@ -151,6 +176,13 @@ void MediaViewerDelegate::onImageChanged(bool fadeAnimation) {
     view->setWindowTitle(QFileInfo(filepath).fileName());
     view->zoomSlider->setValue(view->imageViewer->getScale());
     view->fileInfoWidget->loadInfo(filepath);
+    
+    // 更新喜欢按钮状态
+    auto* model = qobject_cast<MediaListModel*>(mediaListModel);
+    if (model) {
+        bool isFav = model->isFavoriteFile(filepath);
+        view->likeButton->setChecked(isFav);
+    }
 }
 
 void MediaViewerDelegate::onWheelScrolled(int delta) {
@@ -381,4 +413,16 @@ void MediaViewerDelegate::scaleTo(int percent) {
 
 int MediaViewerDelegate::getScale() const {
     return view->imageViewer->getScale();
+}
+
+void MediaViewerDelegate::openInFileExplorer() {
+    QFileInfo fileInfo(filepath);
+    QString folderPath = fileInfo.absolutePath();
+    // 在Windows上使用explorer.exe并选中文件
+    #ifdef Q_OS_WIN
+        QProcess::startDetached("explorer.exe", {"/select,", QDir::toNativeSeparators(filepath)});
+    #else
+        // 在其他平台上仅打开所在文件夹
+        QDesktopServices::openUrl(QUrl::fromLocalFile(folderPath));
+    #endif
 }

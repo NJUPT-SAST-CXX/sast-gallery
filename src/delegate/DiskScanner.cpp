@@ -102,14 +102,60 @@ void DiskScanner::scanPath(const QString& path, bool fullScan) {
     QStringList newCache;
     auto&& entryInfoList = QDir(path).entryInfoList(mediaFileFilter,
                                                     QDir::Files | QDir::NoDotAndDotDot);
+    
+    QStringList modifiedFiles;
+    
     for (auto& entry : entryInfoList) {
-        newCache += entry.absoluteFilePath();
+        QString filePath = entry.absoluteFilePath();
+        newCache += filePath;
+        
+        // 检查文件是否被修改
+        if (oldCache.contains(filePath) && isFileModified(filePath)) {
+            modifiedFiles += filePath;
+        }
     }
+    
     cache.insert(path, newCache);
 
     auto&& [added, removed] = diff(oldCache, newCache);
     pendingCreated += added;
     pendingDeleted += removed;
+    
+    // 更新所有新文件的最后修改时间缓存
+    updateModifiedTimeCache(newCache);
+    
+    // 发送文件修改信号
+    if (!modifiedFiles.isEmpty()) {
+        emit fileModified(modifiedFiles);
+    }
+}
+
+bool DiskScanner::isFileModified(const QString& filePath) {
+    QFileInfo fileInfo(filePath);
+    if (!fileInfo.exists()) return false;
+    
+    QDateTime lastModified = fileInfo.lastModified();
+    
+    // 如果文件不在缓存中，视为未修改
+    if (!lastModifiedTimeCache.contains(filePath)) {
+        return false;
+    }
+    
+    // 比较文件的最后修改时间
+    return lastModified != lastModifiedTimeCache[filePath];
+}
+
+void DiskScanner::updateModifiedTimeCache(const QString& filePath) {
+    QFileInfo fileInfo(filePath);
+    if (fileInfo.exists()) {
+        lastModifiedTimeCache[filePath] = fileInfo.lastModified();
+    }
+}
+
+void DiskScanner::updateModifiedTimeCache(const QStringList& filePaths) {
+    for (const auto& filePath : filePaths) {
+        updateModifiedTimeCache(filePath);
+    }
 }
 
 void DiskScanner::submitChange(bool fullScan) {
