@@ -4,6 +4,7 @@
 #include <ElaText.h>
 #include <QApplication>
 #include <QClipboard>
+#include <QDesktopServices>
 #include <QFile>
 #include <QFileDialog>
 #include <QGuiApplication>
@@ -69,6 +70,10 @@ void MediaViewerDelegate::initConnections() {
 
     //TODO(must): implement the openInFileExplorer functionality
     //connect(openInFileExplorerAction,......)
+    connect(view->openInFileExplorerAction,
+            &QAction::triggered,
+            this,
+            &MediaViewerDelegate::openInFileExplorer);
 
     connect(view->rotateAction, &QAction::triggered, this, &MediaViewerDelegate::rotateImage);
 
@@ -89,6 +94,13 @@ void MediaViewerDelegate::initConnections() {
     connect(view->likeButton, &ElaIconButton::clicked, this, [=]() {
         //TODO(must): implement the like functionality
         // add the image to Favorite Page
+        bool isAlreadyFavorite = mediaListModel
+                                     ->data(mediaListModel->index(mediaIndex.row(),
+                                                                  MediaListModel::IsFavorite))
+                                     .value<bool>();
+        mediaListModel->setData(mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite),
+                                !isAlreadyFavorite,
+                                Qt::EditRole);
     });
 
     connect(view->fileInfoButton,
@@ -188,9 +200,10 @@ bool MediaViewerDelegate::copyImageToClipboard() {
 }
 
 void MediaViewerDelegate::openImageFileDialog() {
+    QString initFilePath = filepath;
     filepath = QFileDialog::getOpenFileName(nullptr,
                                             "Choose Image File",
-                                            "",
+                                            initFilePath,
                                             "Image Files (*.png *.jpg *.bmp *.jpeg *.gif)");
     if (!filepath.isEmpty()) {
         loadImage(filepath);
@@ -381,4 +394,17 @@ void MediaViewerDelegate::scaleTo(int percent) {
 
 int MediaViewerDelegate::getScale() const {
     return view->imageViewer->getScale();
+}
+
+void MediaViewerDelegate::openInFileExplorer() {
+    if (filepath.isEmpty()) {
+        ElaMessageBar::error(ElaMessageBarType::Bottom,
+                             "No file selected!",
+                             nullptr,
+                             2000,
+                             view->imageViewer);
+        return;
+    }
+    QString directoryPath = QFileInfo(filepath).absolutePath();
+    QDesktopServices::openUrl(QUrl::fromLocalFile(directoryPath));
 }

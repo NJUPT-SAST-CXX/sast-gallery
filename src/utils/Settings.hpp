@@ -20,6 +20,16 @@ inline QSettings settings = [] {
                      QSettings::IniFormat);
 }();
 
+inline const QString FAVORITE_STATE_FILE = [] {
+    const std::filesystem::path configDir =
+#ifdef Q_OS_WINDOWS
+        std::filesystem::path(std::getenv("APPDATA")) / "Local" / "NJUPT-SAST-C++" / "SAST-Gallery";
+#else
+        std::filesystem::path(std::getenv("HOME")) / ".config" / "NJUPT-SAST-C++" / "SAST-Gallery";
+#endif
+    return QString::fromStdString((configDir / "favorites.dat").string());
+}();
+
 inline void initSettings() {
     if (!settings.contains("windowSize")) {
         settings.setValue("windowSize", QSize(1200, 740));

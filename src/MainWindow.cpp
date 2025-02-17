@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget* parent)
 
 MainWindow::~MainWindow() {
     settings.setValue("windowSize", size());
+    mediaModel->saveFavorites();
 }
 
 void MainWindow::initWindow() {
@@ -42,6 +43,7 @@ void MainWindow::initContent() {
 
 void MainWindow::initModel() {
     mediaModel = new MediaListModel();
+    mediaModel->loadFavorites();
 
     galleryModel = new QSortFilterProxyModel();
     galleryModel->setSourceModel(mediaModel);

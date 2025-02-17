@@ -38,6 +38,7 @@ public slots:
     void prevImage();
     void nextImage();
     void rotateImage();
+    void openInFileExplorer();
 
 private:
     QAbstractItemModel* mediaListModel;
