@@ -1,24 +1,27 @@
 #include "ImageViewer.h"
 #include <QGraphicsOpacityEffect>
 #include <QPropertyAnimation>
-#include <qgraphicsview.h>
 
 ImageViewer::ImageViewer(QWidget* parent)
     : QGraphicsView(parent)
-    , scaleFactor(1.0)
     , scene(new QGraphicsScene(this))
     , pixmapItem(new QGraphicsPixmapItem())
-    , dragging(false) {
+    , dragging(false)
+    , cntScale(100)
+    , minScale(1)
+    , maxScale(800) {
     setScene(scene);
     scene->addItem(pixmapItem);
     setRenderHint(QPainter::Antialiasing);
     setRenderHint(QPainter::SmoothPixmapTransform);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setDragMode(QGraphicsView::ScrollHandDrag);
     setBackgroundBrush(Qt::transparent);
     setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     setStyleSheet("background-color: transparent;");
     setFrameShape(QFrame::NoFrame);
-    setWheelZoom(true);
 }
 
 ImageViewer::ImageViewer(const QPixmap& pixmap, QWidget* parent)
@@ -44,37 +47,49 @@ void ImageViewer::setContent(const QPixmap& pixmap, bool fadeAnimation) {
     pixmapItem->setPixmap(pixmap);
     adjustImageToFit();
     animation->start(QPropertyAnimation::DeleteWhenStopped);
+    cntScale = 100;
 }
 
 void ImageViewer::setContent(const QImage& image, bool fadeAnimation) {
     setContent(QPixmap::fromImage(image), fadeAnimation);
 }
 
-void ImageViewer::setWheelZoom(bool enabled) {
-    zoomEnabled = enabled;
+int ImageViewer::getScale() const {
+    return cntScale;
 }
 
-void ImageViewer::setScaleFactor(double newFactor) {
-    if (scaleFactor != newFactor) {
-        scaleFactor = newFactor;
-        emit scaleFactorChanged(newFactor);
+int ImageViewer::getMinScale() const {
+    return minScale;
+}
+
+int ImageViewer::getMaxScale() const {
+    return maxScale;
+}
+
+void ImageViewer::setMinScale(int scale) {
+    if (scale < 1) {
+        minScale = 1;
+    } else if (scale > maxScale) {
+        minScale = maxScale;
     }
 }
 
-void ImageViewer::wheelEvent(QWheelEvent* event) {
-    if (!zoomEnabled) {
-        return;
+void ImageViewer::setMaxScale(int scale) {
+    if (scale < minScale) {
+        scale = minScale;
     }
-    const double Factor = 1.05;
-    if (event->angleDelta().y() > 0) {
-        scale(Factor, Factor);
-        scaleFactor *= (Factor * Factor);
-    } else {
-        scale(1.0 / Factor, 1.0 / Factor);
-        scaleFactor /= (scaleFactor / Factor);
+    maxScale = scale;
+}
+
+void ImageViewer::scaleTo(int scale) {
+    if (scale < minScale) {
+        scale = minScale;
+    } else if (scale > maxScale) {
+        scale = maxScale;
     }
-    emit scaleFactorChanged(scaleFactor);
-    event->accept();
+    const double scaleFactor = static_cast<double>(scale) / cntScale;
+    this->scale(scaleFactor, scaleFactor);
+    cntScale = scale;
 }
 
 void ImageViewer::mousePressEvent(QMouseEvent* event) {
@@ -105,7 +120,17 @@ void ImageViewer::mouseReleaseEvent(QMouseEvent* event) {
 
 void ImageViewer::resizeEvent(QResizeEvent* event) {
     QGraphicsView::resizeEvent(event);
+    auto viewCenter = mapToScene(viewport()->rect().center());
+    int cntScalePercent = cntScale;
     adjustImageToFit();
+    centerOn(viewCenter);
+    cntScale = 100;
+    scaleTo(cntScalePercent);
+}
+
+void ImageViewer::wheelEvent(QWheelEvent* event) {
+    emit wheelScrolled(event->angleDelta().y());
+    event->accept();
 }
 
 void ImageViewer::adjustImageToFit() {

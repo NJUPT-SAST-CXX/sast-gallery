@@ -3,7 +3,8 @@
 #include <QDirIterator>
 #include <QStandardPaths>
 
-DiskScanner::DiskScanner() {
+DiskScanner::DiskScanner(QObject* parent)
+    : QObject(parent) {
     connect(&diskWatcher, &QFileSystemWatcher::directoryChanged, [this](const QString& path) {
         scanPath(path); //扫描
         submitChange(); //提交结果
@@ -96,7 +97,7 @@ void DiskScanner::scanPath(const QString& path, bool fullScan) {
         return;
     } //如果已经删除了，就把缓存也删了然后存到pD里
 
-    qDebug() << "DiskScanner: scaning " << path;
+    qDebug() << "DiskScanner: scanning " << path;
     QStringList oldCache = fullScan ? QStringList{} : cache.value(path);
     QStringList newCache;                                            //存储当前扫描到的文件列表
     auto&& entryInfoList = QDir(path).entryInfoList(mediaFileFilter, //过滤文件

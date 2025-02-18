@@ -9,7 +9,7 @@ class DiskScanner : public QObject {
     Q_OBJECT
 
 public:
-    DiskScanner();
+    DiskScanner(QObject* parent = nullptr);
 
     // search path management
     // supposed to call scan() after:

@@ -1,8 +1,8 @@
 #include "MediaViewer.h"
 #include <ElaMenu.h>
 #include <ElaMenuBar.h>
-#include <QDir>
-#include <QScreen>
+#include <ElaToolTip.h>
+#include <QFileInfo>
 #include <delegate/MediaViewerDelegate.h>
 #include <utils/Tools.h>
 
@@ -12,10 +12,6 @@ MediaViewer::MediaViewer(QAbstractItemModel* model, int index, QWidget* parent)
     initWindow();
     initContent();
     delegate->initConnections();
-    connect(imageViewer,
-            &ImageViewer::scaleFactorChanged,
-            delegate,
-            &MediaViewerDelegate::setScaleFactor);
 }
 
 MediaViewer::~MediaViewer() {}
@@ -31,6 +27,8 @@ void MediaViewer::initWindow() {
 
 void MediaViewer::initContent() {
     auto* mainLayout = new QVBoxLayout(this);
+    auto* middleAreaLayout = new QHBoxLayout(this);
+    auto* mainMiddleAreaLayout = new QVBoxLayout(this);
 
     // Create menu bar
     auto* menuBar = new ElaMenuBar(this);
@@ -45,7 +43,7 @@ void MediaViewer::initContent() {
     ElaMenu* fileMenu = menuBar->addMenu(ElaIconType::Ellipsis, nullptr);
     openFileAction = fileMenu->addAction("Open");
     copyFileAction = fileMenu->addAction("Copy");
-    saveasFileAction = fileMenu->addAction("Save As");
+    saveFileAction = fileMenu->addAction("Save As");
     openInFileExplorerAction = fileMenu->addAction("Open image in File Explorer");
 
     fileMenu->addSeparator();
@@ -58,14 +56,19 @@ void MediaViewer::initContent() {
 
     // image view
     imageViewer = new ImageViewer(QPixmap::fromImage(delegate->getImage()), this);
-    imageViewer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    imageViewer->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    imageViewer->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    // file info widget
+    fileInfoWidget = new FileInfoWidget(this);
+    fileInfoWidget->loadInfo(delegate->getFilePath());
+    fileInfoWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    fileInfoWidget->setFixedWidth(0);
+    fileInfoWidget->setMessageBarParent(imageViewer);
+    fileInfoWidget->hide();
 
     // Create buttons
     QHBoxLayout* operationLayout = new QHBoxLayout(this);
 
-    likeButton = new ElaIconButton(ElaIconType::Heart);
+    likeButton = new ElaIconButton(ElaIconType::Heart, this);
     likeButton->setMaximumWidth(25);
 
     fileInfoButton = new ElaIconButton(ElaIconType::CircleInfo);
@@ -89,9 +92,9 @@ void MediaViewer::initContent() {
     zoomInButton->setMaximumWidth(25);
 
     zoomSlider = new ElaSlider(Qt::Orientation::Horizontal);
-    // range from 1% to 300% scaleFactor: 0.01 to 3.00
-    // scaleFactor = 1 + zoomSlider->value() / 100
-    zoomSlider->setRange(1, 300); //percentage of zoom
+    // range from 1% to 800%
+    zoomSlider->setRange(1, 800);
+    zoomSlider->setSingleStep(1);
     zoomSlider->setValue(100);
     zoomSlider->setMaximumWidth(300);
 
@@ -120,29 +123,33 @@ void MediaViewer::initContent() {
     operationLayout->addWidget(maximizeButton);
     operationLayout->addWidget(zoom2originalButton);
 
+    mainMiddleAreaLayout->addWidget(imageViewer);
+    mainMiddleAreaLayout->addLayout(operationLayout);
+
+    middleAreaLayout->addLayout(mainMiddleAreaLayout);
+    middleAreaLayout->addWidget(fileInfoWidget);
+
     // Main Layout
     mainLayout->addWidget(menuBar);
-    mainLayout->addWidget(imageViewer);
-    mainLayout->addLayout(operationLayout);
+    mainLayout->addLayout(middleAreaLayout);
     mainLayout->setAlignment(Qt::AlignTop);
 
-    // show actions status tips when pointing at them
-    openFileAction->setStatusTip("Open a file");
-    copyFileAction->setStatusTip("Copy a file");
-    saveasFileAction->setStatusTip("Save a file as");
-    openInFileExplorerAction->setStatusTip("Open the file in File Explorer");
-    rotateAction->setStatusTip("Rotate the image");
-    deleteAction->setStatusTip("Delete the image");
-    printAction->setStatusTip("Print the image");
-    editAction->setStatusTip("Edit the image");
-    likeButton->setStatusTip("Like the image");
-    fileInfoButton->setStatusTip("Show file info");
-    zoomInButton->setStatusTip("Zoom in");
-    zoomOutButton->setStatusTip("Zoom out");
-    maximizeButton->setStatusTip("Fullscreen");
-    zoom2originalButton->setStatusTip("Zoom to original size");
-}
-
-void MediaViewer::wheelEvent(QWheelEvent* event) {
-    delegate->wheelEvent(event);
+    // tooltips
+    auto* likeButtonToolTip = new ElaToolTip(likeButton);
+    likeButtonToolTip->setToolTip("Like");
+    auto* fileInfoButtonToolTip = new ElaToolTip(fileInfoButton);
+    fileInfoButtonToolTip->setToolTip("File Info");
+    auto* zoomInButtonToolTip = new ElaToolTip(zoomInButton);
+    zoomInButtonToolTip->setToolTip("Zoom In");
+    auto* zoomOutButtonToolTip = new ElaToolTip(zoomOutButton);
+    zoomOutButtonToolTip->setToolTip("Zoom Out");
+    auto* maximizeButtonToolTip = new ElaToolTip(maximizeButton);
+    maximizeButtonToolTip->setToolTip("Maximize");
+    auto* zoom2originalButtonToolTip = new ElaToolTip(zoom2originalButton);
+    zoom2originalButtonToolTip->setToolTip("Zoom to Original");
+    auto* zoomSliderToolTip = new ElaToolTip(zoomSlider);
+    zoomSliderToolTip->setToolTip("100%");
+    connect(zoomSlider, &QSlider::valueChanged, this, [=](int value) {
+        zoomSliderToolTip->setToolTip(QString("%1%").arg(value));
+    });
 }

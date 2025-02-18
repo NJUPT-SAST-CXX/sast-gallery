@@ -38,7 +38,7 @@ void MainWindow::initContent() {
     addPageNode("Gallery", galleryPage, ElaIconType::Images);
 
     favoritePage = new FavoritePage(favoriteModel, this);
-    addPageNode("Favourites", favoritePage, ElaIconType::Heart);
+    addPageNode("Favorites", favoritePage, ElaIconType::Heart);
 
     aboutPage = new AboutPage(this);
     QString aboutPageKey;
@@ -53,20 +53,22 @@ void MainWindow::initModel() {
     mediaModel = new MediaListModel();
 
     galleryModel = new QSortFilterProxyModel();
-    galleryModel->setSourceModel(mediaModel);             //将其源模型设置为mediamodel
-    galleryModel->sort(MediaListModel::LastModifiedTime); //按照最后修改时间对媒体列表进行排序
+    galleryModel->setSourceModel(mediaModel); //将其源模型设置为mediamodel
+    galleryModel->sort(MediaListModel::LastModifiedTime,
+                       Qt::DescendingOrder); //按照最后修改时间对媒体列表进行排序
 
     favoriteModel = new QSortFilterProxyModel();
     favoriteModel->setSourceModel(galleryModel);
     favoriteModel->setFilterKeyColumn(MediaListModel::IsFavorite); //过滤条件
     favoriteModel->setFilterFixedString("true");
 
-    diskScanner = new DiskScanner; //扫描磁盘
+    diskScanner = new DiskScanner(); //扫描磁盘
     // clang-format off
     QObject::connect(diskScanner, &DiskScanner::fileCreated, mediaModel, &MediaListModel::appendEntries);//创建
     QObject::connect(diskScanner, &DiskScanner::fileDeleted, mediaModel, &MediaListModel::removeEntries);//删除
     QObject::connect(diskScanner, &DiskScanner::fileModified, mediaModel, &MediaListModel::modifiedEntries);//修改
     QObject::connect(diskScanner, &DiskScanner::fullScan, mediaModel, &MediaListModel::resetEntries);//全量扫描
     // clang-format on
+
     diskScanner->scan(); //启动扫描
 }

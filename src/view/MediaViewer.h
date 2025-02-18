@@ -1,5 +1,6 @@
 #pragma once
 
+#include "component/FileInfoWidget.h"
 #include "component/ImageViewer.h"
 #include <ElaIconButton.h>
 #include <ElaSlider.h>
@@ -21,9 +22,6 @@ public:
     void initWindow();
     void initContent();
 
-protected:
-    void wheelEvent(QWheelEvent* event) override;
-
 private:
     QAction* rotateAction{};
     QAction* deleteAction{};
@@ -33,7 +31,7 @@ private:
     QAction* nextAction{};
     QAction* openFileAction{};
     QAction* copyFileAction{};
-    QAction* saveasFileAction{};
+    QAction* saveFileAction{};
     QAction* openInFileExplorerAction{};
     ElaSlider* zoomSlider{};
     ElaIconButton* likeButton{};
@@ -44,6 +42,7 @@ private:
     ElaIconButton* zoom2originalButton{};
     ElaText* fileInfoBriefText{};
     ImageViewer* imageViewer;
+    FileInfoWidget* fileInfoWidget{};
 
     MediaViewerDelegate* delegate{};
 };

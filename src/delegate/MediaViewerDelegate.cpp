@@ -8,7 +8,6 @@
 #include <QFileDialog>
 #include <QGuiApplication>
 #include <QImageReader>
-#include <QMessageBox>
 #include <QPaintDevice>
 #include <QScreen>
 #include <QtConcurrent>
@@ -19,23 +18,25 @@
 
 MediaViewerDelegate::MediaViewerDelegate(QAbstractItemModel* model,
                                          int index,
-                                         MediaViewer* view,
+                                         MediaViewer* viewer,
                                          QObject* parent)
     : QObject(parent)
     , mediaListModel(model)
     , mediaIndex(model->index(index, MediaListModel::Path))
-    , scaleFactor(1.0)
-    , view(view) {
+    , view(viewer) {
     filepath = mediaIndex.data().value<QString>();
     loadImage(filepath);
-    connect(mediaListModel,
-            &QAbstractItemModel::rowsAboutToBeRemoved,
-            this,
-            &MediaViewerDelegate::onModelRowsToBeRemoved);
 }
 
 void MediaViewerDelegate::initConnections() {
     // connect to actions
+    connect(mediaListModel,
+            &QAbstractItemModel::rowsAboutToBeRemoved,
+            this,
+            &MediaViewerDelegate::onModelRowsToBeRemoved);
+
+    connect(this, &MediaViewerDelegate::imageChanged, this, &MediaViewerDelegate::onImageChanged);
+
     connect(view->openFileAction, &QAction::triggered, this, [this]() {
         openImageFileDialog();
         if (this->image.isNull()) {
@@ -43,7 +44,7 @@ void MediaViewerDelegate::initConnections() {
                                  "Error",
                                  "Image failed to load",
                                  3000,
-                                 view);
+                                 view->imageViewer);
         }
         loadImage(this->image);
         QScreen* screen = QGuiApplication::primaryScreen();
@@ -61,12 +62,12 @@ void MediaViewerDelegate::initConnections() {
             &QAction::triggered,
             this,
             &MediaViewerDelegate::copyImageToClipboard);
-    connect(view->saveasFileAction,
+    connect(view->saveFileAction,
             &QAction::triggered,
             this,
             &MediaViewerDelegate::saveImageFileDialog);
 
-    //TODO(must):implement the openInFileExplorer functionality
+    //TODO(must): implement the openInFileExplorer functionality
     //connect(openInFileExplorerAction,......)
 
     connect(view->rotateAction, &QAction::triggered, this, &MediaViewerDelegate::rotateImage);
@@ -78,7 +79,7 @@ void MediaViewerDelegate::initConnections() {
     });
 
     connect(view->editAction, &QAction::triggered, this, [=]() {
-        //TODO(optional):implement the edit functionality
+        //TODO(optional): implement the edit functionality
     });
 
     connect(view->prevAction, &QAction::triggered, this, &MediaViewerDelegate::prevImage);
@@ -86,85 +87,48 @@ void MediaViewerDelegate::initConnections() {
     connect(view->nextAction, &QAction::triggered, this, &MediaViewerDelegate::nextImage);
 
     connect(view->likeButton, &ElaIconButton::clicked, this, [=]() {
-        //TODO(must):implement the like functionality
+        //TODO(must): implement the like functionality
         // add the image to Favorite Page
     });
 
-    connect(view->fileInfoButton, &ElaIconButton::clicked, this, &MediaViewerDelegate::readFullInfo);
+    connect(view->fileInfoButton,
+            &ElaIconButton::clicked,
+            this,
+            &MediaViewerDelegate::onFileInfoClicked);
 
-    connect(view->zoomInButton, &ElaIconButton::clicked, this, [this]() {
-        scaleFactor += 0.05; //需改为显示捕获
-        if (scaleFactor > 3)
-            scaleFactor = 3;
-        scaleImage(scaleFactor);
-        view->zoomSlider->setToolTip(QString::number(scaleFactor * 100));
-        view->zoomSlider->setValue(scaleFactor * 100);
+    connect(view->zoomInButton, &ElaIconButton::clicked, [this]() {
+        scaleTo(getScale() + 10);
+        view->zoomSlider->setValue(getScale());
     });
 
-    connect(view->zoomOutButton, &ElaIconButton::clicked, this, [this]() {
-        scaleFactor -= 0.05;
-        if (scaleFactor < 0.2)
-            scaleFactor = 0.1;
-        scaleImage(scaleFactor);
-        view->zoomSlider->setToolTip(QString::number(scaleFactor * 100));
-        view->zoomSlider->setValue(scaleFactor * 100);
+    connect(view->zoomSlider, &ElaSlider::valueChanged, [this](int value) { scaleTo(value); });
+
+    connect(view->zoomOutButton, &ElaIconButton::clicked, [this]() {
+        scaleTo(view->imageViewer->getScale() - 10);
+        view->zoomSlider->setValue(getScale());
     });
 
-    connect(view->maximizeButton, &ElaIconButton::clicked, this, [this]() {
+    connect(view->maximizeButton, &ElaIconButton::clicked, [this]() {
         this->view->showMaximized();
     });
 
-    connect(view->zoom2originalButton, &ElaIconButton::clicked, this, [this]() {
-        scaleImage(1.0);
-        view->zoomSlider->setToolTip(QString::number(scaleFactor * 100));
-        view->zoomSlider->setValue(scaleFactor * 100);
+    connect(view->zoom2originalButton, &ElaIconButton::clicked, [this]() {
+        scaleTo(100);
+        view->zoomSlider->setValue(getScale());
     });
 
-    connect(view->zoomSlider, &ElaSlider::valueChanged, this, [this](int value) {
-        // range from 1% to 300%
-        if (value >= 1 && value <= 300) {
-            scaleImage(value / 100.0);
-            view->zoomSlider->setToolTip(QString::number(value));
-            view->zoomSlider->setValue(value);
-        }
+    connect(this, &MediaViewerDelegate::scaledByWheel, [this]() {
+        view->zoomSlider->setValue(getScale());
     });
 
-    connect(this, &MediaViewerDelegate::imageChanged, this, [this](bool fadeAnimation) {
-        view->imageViewer->setContent(image, fadeAnimation);
-        view->fileInfoBriefText->setText(QString("%1 x %2 %3")
-                                             .arg(QString::number(image.width()))
-                                             .arg(QString::number(QImage(image).height()))
-                                             .arg(Tools::fileSizeString(filepath)));
-        view->setWindowTitle(QFileInfo(filepath).fileName());
-    });
-    connect(view->imageViewer, &ImageViewer::scaleFactorChanged, this, [this](double newFactor) {
-        setScaleFactor(newFactor);
-        view->zoomSlider->setValue(newFactor * 100);
-    });
-}
-
-void MediaViewerDelegate::wheelEvent(QWheelEvent* event) {
-    if (settings.value("wheelBehavior").toInt() == 0) {
-        view->imageViewer->setWheelZoom(true);
-    } else {
-        view->imageViewer->setWheelZoom(false);
-        if (event->angleDelta().y() > 0) {
-            prevImage();
-        } else {
-            nextImage();
-        }
-    }
-    event->accept();
+    connect(view->imageViewer,
+            &ImageViewer::wheelScrolled,
+            this,
+            &MediaViewerDelegate::onWheelScrolled);
 }
 
 void MediaViewerDelegate::onModelRowsToBeRemoved(const QModelIndex& parent, int first, int last) {
-    // check if the current image is deleted
     if (mediaIndex.row() >= first && mediaIndex.row() <= last) {
-        /* 
-            current image is deleted, load the nearest image
-            check if there is any image after the current image, 
-            if not, check if there is any image before the current image
-        */
         if (last < mediaListModel->rowCount() - 1) {
             mediaIndex = mediaListModel->index(last + 1, MediaListModel::Path);
         } else if (first > 0) {
@@ -178,14 +142,47 @@ void MediaViewerDelegate::onModelRowsToBeRemoved(const QModelIndex& parent, int 
     }
 }
 
+void MediaViewerDelegate::onImageChanged(bool fadeAnimation) {
+    view->imageViewer->setContent(image, fadeAnimation);
+    view->fileInfoBriefText->setText(QString("%1 x %2 %3")
+                                         .arg(QString::number(image.width()))
+                                         .arg(QString::number(QImage(image).height()))
+                                         .arg(Tools::fileSizeString(filepath)));
+    view->setWindowTitle(QFileInfo(filepath).fileName());
+    view->zoomSlider->setValue(view->imageViewer->getScale());
+    view->fileInfoWidget->loadInfo(filepath);
+}
+
+void MediaViewerDelegate::onWheelScrolled(int delta) {
+    if (settings.value("wheelBehavior").toInt() == 0) {
+        const double scaleFactor = std::abs(delta) / 100.0;
+        scaleTo(view->imageViewer->getScale() + delta / 10);
+        emit scaledByWheel();
+    } else {
+        if (delta > 0) {
+            prevImage();
+        } else {
+            nextImage();
+        }
+    }
+}
+
 bool MediaViewerDelegate::copyImageToClipboard() {
     if (this->image.isNull()) {
-        QClipboard* clipboard = QApplication::clipboard();
-        clipboard->setText("Image failed to copy to clipboard,plz load image first");
+        ElaMessageBar::error(ElaMessageBarType::Bottom,
+                             "Null Image!",
+                             nullptr,
+                             2000,
+                             view->imageViewer);
         return false;
     } else {
         QClipboard* clipboard = QApplication::clipboard();
         clipboard->setImage(this->image);
+        ElaMessageBar::success(ElaMessageBarType::Bottom,
+                               "Copied!",
+                               nullptr,
+                               2000,
+                               view->imageViewer);
         return true;
     }
 }
@@ -210,19 +207,30 @@ void MediaViewerDelegate::saveImageFileDialog() {
     }
 }
 
-void MediaViewerDelegate::readFullInfo() {
-    QFileInfo info(filepath);
-    QString fileInfo = "File Name: " + info.fileName() + "\n";
-    fileInfo += "File Resolution: " + QString::number(QImage(filepath).width()) + "x"
-                + QString::number(QImage(filepath).height()) + "\n";
-    fileInfo += "File Path: " + info.absoluteFilePath() + "\n";
-    fileInfo += "File Size: " + Tools::fileSizeString(filepath) + "\n";
-    fileInfo += "File Created: " + info.birthTime().toString() + "\n";
-    fileInfo += "File Modified: " + info.lastModified().toString() + "\n";
-    fileInfo += "File Accessed: " + info.lastRead().toString() + "\n";
-    fileInfo += "File Type: " + QImageReader::imageFormat(filepath).toUpper() + "\n";
-
-    QMessageBox::information(view, "Full Image Information", fileInfo);
+void MediaViewerDelegate::onFileInfoClicked() {
+    auto* fileInfoAnimation = new QPropertyAnimation(view->fileInfoWidget, "width");
+    connect(fileInfoAnimation, &QPropertyAnimation::valueChanged, [=](const QVariant& value) {
+        view->fileInfoWidget->setFixedWidth(value.toInt());
+    });
+    connect(fileInfoAnimation,
+            &QPropertyAnimation::finished,
+            fileInfoAnimation,
+            &QObject::deleteLater);
+    fileInfoAnimation->setEasingCurve(QEasingCurve::OutCubic);
+    fileInfoAnimation->setDuration(150);
+    if (view->fileInfoWidget->isVisible()) {
+        fileInfoAnimation->setStartValue(view->fileInfoWidget->width());
+        fileInfoAnimation->setEndValue(0);
+        connect(fileInfoAnimation,
+                &QPropertyAnimation::finished,
+                view->fileInfoWidget,
+                &QWidget::hide);
+    } else {
+        view->fileInfoWidget->show();
+        fileInfoAnimation->setStartValue(view->fileInfoWidget->width());
+        fileInfoAnimation->setEndValue(350);
+    }
+    fileInfoAnimation->start();
 }
 
 void MediaViewerDelegate::adaptiveResize() {
@@ -275,17 +283,33 @@ void MediaViewerDelegate::deleteImage() {
         });
         connect(confirmDialog, &ElaContentDialog::rightButtonClicked, this, [=, this]() {
             if (!QFile(filepath).remove()) {
-                ElaMessageBar::error(ElaMessageBarType::Bottom, "Delete failed!", nullptr, 2000);
+                ElaMessageBar::error(ElaMessageBarType::Bottom,
+                                     "Delete failed!",
+                                     nullptr,
+                                     2000,
+                                     view->imageViewer);
             } else {
-                ElaMessageBar::success(ElaMessageBarType::Bottom, "Deleted!", nullptr, 2000);
+                ElaMessageBar::success(ElaMessageBarType::Bottom,
+                                       "Deleted!",
+                                       nullptr,
+                                       2000,
+                                       view->imageViewer);
             }
         });
         confirmDialog->exec();
     } else {
         if (!QFile(filepath).remove()) {
-            ElaMessageBar::error(ElaMessageBarType::Bottom, "Delete failed!", nullptr, 2000);
+            ElaMessageBar::error(ElaMessageBarType::Bottom,
+                                 "Delete failed!",
+                                 nullptr,
+                                 2000,
+                                 view->imageViewer);
         } else {
-            ElaMessageBar::success(ElaMessageBarType::Bottom, "Deleted!", nullptr, 2000);
+            ElaMessageBar::success(ElaMessageBarType::Bottom,
+                                   "Deleted!",
+                                   nullptr,
+                                   2000,
+                                   view->imageViewer);
         }
     }
 }
@@ -314,14 +338,14 @@ void MediaViewerDelegate::rotateImage() {
     QTransform transform;
     transform.rotate(90);
     loadImage(image.transformed(transform), false);
-    QFuture<void> future = QtConcurrent::run([this]() { this->image.save(filepath); });
+    auto _ [[maybe_unused]] = QtConcurrent::run([this]() { this->image.save(filepath); });
 }
 
 bool MediaViewerDelegate::loadImage(const QString& path, bool fadeAnimation) {
+    if (path.isEmpty()) {
+        return false;
+    }
     try {
-        if (path.isEmpty()) {
-            return false;
-        }
         QImage loaded(path);
         if (loaded.isNull()) {
             return false;
@@ -333,15 +357,15 @@ bool MediaViewerDelegate::loadImage(const QString& path, bool fadeAnimation) {
         }
         return false;
     } catch (...) {
-        return false;
     }
+    return false;
 }
 
 bool MediaViewerDelegate::loadImage(const QImage& image, bool fadeAnimation) {
+    if (image.isNull()) {
+        return false;
+    }
     try {
-        if (image.isNull()) {
-            return false;
-        }
         if (this->image.isNull() || this->image != image) {
             this->image = image;
             emit imageChanged(fadeAnimation);
@@ -349,11 +373,14 @@ bool MediaViewerDelegate::loadImage(const QImage& image, bool fadeAnimation) {
         }
         return false;
     } catch (...) {
-        return false;
     }
+    return false;
 }
 
-void MediaViewerDelegate::scaleImage(double factor) {
-    scaleFactor = factor;
-    view->imageViewer->scale(scaleFactor, scaleFactor);
+void MediaViewerDelegate::scaleTo(int percent) {
+    view->imageViewer->scaleTo(percent);
+}
+
+int MediaViewerDelegate::getScale() const {
+    return view->imageViewer->getScale();
 }
