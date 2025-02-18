@@ -22,7 +22,7 @@ inline QSettings settings = [] {
 
 inline void initSettings() {
     if (!settings.contains("windowSize")) {
-        settings.setValue("windowSize", QSize(1200, 740));
+        settings.setValue("windowSize", QSize(800, 600));
     }
     if (!settings.contains("theme")) {
         settings.setValue("theme", "light");

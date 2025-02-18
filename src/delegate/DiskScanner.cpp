@@ -1,11 +1,15 @@
 #include "DiskScanner.h"
+#include <QDateTime>
+#include <QDebug>
 #include <QDir>
 #include <QDirIterator>
+#include <QFileInfo>
 #include <QStandardPaths>
 
 DiskScanner::DiskScanner(QObject* parent)
     : QObject(parent) {
     connect(&diskWatcher, &QFileSystemWatcher::directoryChanged, [this](const QString& path) {
+        qDebug() << "Directory changed:" << path;
         scanPath(path);
         submitChange();
     });
@@ -102,14 +106,16 @@ void DiskScanner::scanPath(const QString& path, bool fullScan) {
     QStringList newCache;
     auto&& entryInfoList = QDir(path).entryInfoList(mediaFileFilter,
                                                     QDir::Files | QDir::NoDotAndDotDot);
-    for (auto& entry : entryInfoList) {
-        newCache += entry.absoluteFilePath();
+    for (auto&& entry : entryInfoList) {
+        QString filePath = entry.absoluteFilePath();
+        newCache += filePath;
     }
     cache.insert(path, newCache);
 
-    auto&& [added, removed] = diff(oldCache, newCache);
+    auto&& [added, removed, modified] = diff(oldCache, newCache);
     pendingCreated += added;
     pendingDeleted += removed;
+    pendingModified += modified;
 }
 
 void DiskScanner::submitChange(bool fullScan) {
@@ -117,29 +123,71 @@ void DiskScanner::submitChange(bool fullScan) {
         emit DiskScanner::fullScan(pendingCreated);
         pendingCreated.clear();
         pendingDeleted.clear();
+        pendingModified.clear();
         return;
     }
     if (pendingCreated.size() != 0) {
+        qDebug() << "DiskScanner: emitting fileCreated signal for " << pendingCreated.size()
+                 << " files";
         emit fileCreated(pendingCreated);
         pendingCreated.clear();
     }
     if (pendingDeleted.size() != 0) {
+        qDebug() << "DiskScanner: emitting fileDeleted signal for " << pendingDeleted.size()
+                 << " files";
         emit fileDeleted(pendingDeleted);
         pendingDeleted.clear();
+    }
+    if (pendingModified.size() != 0) {
+        qDebug() << "DiskScanner: emitting fileModified signal for " << pendingModified.size()
+                 << " files";
+        emit fileModified(pendingModified);
+        pendingModified.clear();
     }
 }
 
 DiskScanner::DiffResult DiskScanner::diff(const QStringList& oldv, const QStringList& newv) {
-    QSet olds(oldv.begin(), oldv.end());
-    QSet news(newv.begin(), newv.end());
+    QSet<QString> olds(oldv.begin(), oldv.end());
+    QSet<QString> news(newv.begin(), newv.end());
+
     DiffResult res;
     res.added = [=]() {
         auto res = news - olds;
         return QStringList(res.begin(), res.end());
     }();
+
     res.removed = [=]() {
         auto res = olds - news;
         return QStringList(res.begin(), res.end());
     }();
+
+    res.modified = [=]() {
+        QStringList res;
+        for (const auto& filePath : newv) {
+            if (olds.contains(filePath)) {
+                QDateTime newModTime = QFileInfo(filePath).lastModified();
+                QDateTime oldModTime = oldModTimes.value(filePath);
+
+                if (newModTime.isValid() && oldModTime.isValid() && newModTime != oldModTime) {
+                    qDebug() << "Modified file:" << filePath;
+                    res += filePath;
+                }
+            }
+        }
+        return res;
+    }();
+
+    // Update the modification times for the next comparison
+    for (const auto& filePath : res.added + res.modified) {
+        QDateTime newModTime = QFileInfo(filePath).lastModified();
+        if (newModTime.isValid()) {
+            oldModTimes[filePath] = newModTime;
+        }
+    }
+
+    for (const auto& filePath : res.removed) {
+        oldModTimes.remove(filePath);
+    }
+
     return res;
 }

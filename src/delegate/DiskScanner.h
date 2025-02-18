@@ -34,7 +34,7 @@ signals:
     void fullScan(const QStringList& filePath);
     void fileCreated(const QStringList& filePath);
     void fileDeleted(const QStringList& filePath);
-    void fileModified(const QStringList& filePath); // TODO: detect file modified
+    void fileModified(const QStringList& filePath);
 
 private:
     bool initScanComplete = true;
@@ -45,16 +45,18 @@ private:
     struct DiffResult {
         QStringList added;
         QStringList removed;
+        QStringList modified;
     };
     // compare and signal
-    static DiffResult diff(const QStringList& oldv, const QStringList& newv);
+    DiffResult diff(const QStringList& oldv, const QStringList& newv);
 
     // scan specific path, path must be a subfolder of searchPath
     QMap<QString, QStringList> cache;
+    QMap<QString, QDateTime> oldModTimes; // save last modified time for each file
     void scanPath(const QString& path, bool fullScan = false);
 
     // work with scan() and scanPath(), as scan cache
-    QStringList pendingCreated, pendingDeleted;
+    QStringList pendingCreated, pendingDeleted, pendingModified;
     void submitChange(bool fullScan = false);
 
     // QDir name filter

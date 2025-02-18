@@ -1,17 +1,23 @@
 #include "MediaPreviewer.h"
+#include "delegate/DiskScanner.h"
+#include "model/MediaListModel.h"
+#include "view/MediaViewer.h"
+#include <QFileInfo>
 #include <QImageReader>
 #include <QPainter>
 #include <QPainterPath>
 #include <QPropertyAnimation>
 #include <QtConcurrentRun>
-#include <model/MediaListModel.h>
 
 MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget* parent)
-    : QLabel(parent) {
+    : QLabel(parent)
+    , model(model)
+    , rowIndex(rowIndex) {
     filepath = model->data(model->index(rowIndex, MediaListModel::Path)).value<QString>();
     lastModified = model->data(model->index(rowIndex, MediaListModel::LastModifiedTime))
                        .value<QDateTime>();
     isFav = model->data(model->index(rowIndex, MediaListModel::IsFavorite)).value<bool>();
+    // qDebug() << "Connecting to fileModified signal for filepath:" << filepath;
     connect(&imageLoadWatcher,
             &QFutureWatcher<QPixmap*>::finished,
             this,
@@ -19,7 +25,7 @@ MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget*
     setScaledContents(true);
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     initMedia();
-    // TODO: open the image in a MediaViewer window when double clicked
+    connect(this, &MediaPreviewer::doubleClicked, this, &MediaPreviewer::openMediaViewer);
 }
 
 MediaPreviewer::~MediaPreviewer() {}
@@ -27,6 +33,7 @@ MediaPreviewer::~MediaPreviewer() {}
 void MediaPreviewer::paintEvent(QPaintEvent* event) {
     QLabel::paintEvent(event);
     if (requireReloadImage) {
+        qDebug() << "Reloading image for filepath:" << filepath;
         imageLoadWatcher.setFuture(QtConcurrent::run(&MediaPreviewer::loadImage, this));
         requireReloadImage = false;
     }
@@ -63,6 +70,7 @@ bool MediaPreviewer::isFavorite() {
 }
 
 void MediaPreviewer::initMedia() {
+    qDebug() << "initMedia called for filepath:" << filepath;
     mediaSize = QImageReader(filepath).size();
     requireReloadImage = true;
 }
@@ -86,7 +94,15 @@ void MediaPreviewer::loadImageComplete() {
 }
 
 QPixmap MediaPreviewer::loadImage() {
+    if (filepath.isEmpty()) {
+        qDebug() << "File path is empty!";
+        return QPixmap();
+    }
     QImageReader reader(filepath);
+    if (!reader.canRead()) {
+        qDebug() << "Cannot read image from file path:" << filepath;
+        return QPixmap();
+    }
     reader.setScaledSize(QSize{0, 180});
     return roundedPixmap(QPixmap::fromImage(reader.read()), 4);
 }
@@ -135,6 +151,10 @@ QPixmap MediaPreviewer::scalePixmapContent(qreal scaleFactor) {
 }
 
 void MediaPreviewer::scaleAnimation(qreal startScale, qreal endScale, int duration) {
+    if (metaObject()->indexOfProperty("scaleFactor") < 0) {
+        qDebug() << "scaleFactor property does not exist!";
+        return;
+    }
     auto* animation = new QPropertyAnimation(this, "scaleFactor");
     animation->setDuration(duration);
     animation->setStartValue(startScale);
@@ -145,4 +165,9 @@ void MediaPreviewer::scaleAnimation(qreal startScale, qreal endScale, int durati
         }
     });
     animation->start(QAbstractAnimation::DeleteWhenStopped);
+}
+
+void MediaPreviewer::openMediaViewer() {
+    MediaViewer* viewer = new MediaViewer(model, rowIndex, nullptr);
+    viewer->show();
 }

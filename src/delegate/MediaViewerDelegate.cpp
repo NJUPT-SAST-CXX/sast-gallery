@@ -4,6 +4,7 @@
 #include <ElaText.h>
 #include <QApplication>
 #include <QClipboard>
+#include <QDataStream>
 #include <QFile>
 #include <QFileDialog>
 #include <QGuiApplication>
@@ -67,8 +68,11 @@ void MediaViewerDelegate::initConnections() {
             this,
             &MediaViewerDelegate::saveImageFileDialog);
 
-    //TODO(must): implement the openInFileExplorer functionality
-    //connect(openInFileExplorerAction,......)
+    //TODO(must): implement the openInFileExplorer functionality (checked)
+    connect(view->openInFileExplorerAction,
+            &QAction::triggered,
+            this,
+            &MediaViewerDelegate::openInFileExplorer);
 
     connect(view->rotateAction, &QAction::triggered, this, &MediaViewerDelegate::rotateImage);
 
@@ -86,10 +90,12 @@ void MediaViewerDelegate::initConnections() {
 
     connect(view->nextAction, &QAction::triggered, this, &MediaViewerDelegate::nextImage);
 
-    connect(view->likeButton, &ElaIconButton::clicked, this, [=]() {
-        //TODO(must): implement the like functionality
-        // add the image to Favorite Page
-    });
+    connect(view->likeButton,
+            &ElaIconButton::clicked,
+            this,
+            &MediaViewerDelegate::onFavoriteButtonClicked);
+    //TODO(must): implement the like functionality
+    // add the image to Favorite Page
 
     connect(view->fileInfoButton,
             &ElaIconButton::clicked,
@@ -208,6 +214,10 @@ void MediaViewerDelegate::saveImageFileDialog() {
 }
 
 void MediaViewerDelegate::onFileInfoClicked() {
+    /*if (view->fileInfoWidget->layout()) {
+        qDebug() << "FileInfoWidget already has a layout!";
+        return;
+    }*/
     auto* fileInfoAnimation = new QPropertyAnimation(view->fileInfoWidget, "width");
     connect(fileInfoAnimation, &QPropertyAnimation::valueChanged, [=](const QVariant& value) {
         view->fileInfoWidget->setFixedWidth(value.toInt());
@@ -381,4 +391,25 @@ void MediaViewerDelegate::scaleTo(int percent) {
 
 int MediaViewerDelegate::getScale() const {
     return view->imageViewer->getScale();
+}
+
+void MediaViewerDelegate::openInFileExplorer() {
+#ifdef Q_OS_WIN
+    QString command = "explorer.exe /select, \"" + filepath + "\"";
+#elif defined(Q_OS_MAC)
+    QString command = "open -R \"" + filepath + "\"";
+#elif defined(Q_OS_LINUX)
+    QString command = "xdg-open \"" + filepath.left(filepath.lastIndexOf('/')) + "\"";
+#else
+#error "Unsupported OS"
+#endif
+
+    QProcess::startDetached(command);
+}
+
+void MediaViewerDelegate::onFavoriteButtonClicked() {
+    QString currentFilePath = getFilePath();
+    // update the model
+    QModelIndex favoriteIndex = mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite);
+    mediaListModel->setData(favoriteIndex, true, Qt::EditRole);
 }
