@@ -15,9 +15,9 @@ class MediaListModel : public QAbstractTableModel {
 
 public:
     MediaListModel(QObject* parent = nullptr);
-    ~MediaListModel();
+    ~MediaListModel() override;
 
-    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
+    [[nodiscard]] int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     int columnCount(const QModelIndex& parent = QModelIndex()) const override;
     QVariant data(const QModelIndex& index, int role) const override;
     Qt::ItemFlags flags(const QModelIndex& index) const override;

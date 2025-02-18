@@ -92,8 +92,8 @@ void MediaViewerDelegate::initConnections() {
 
     connect(view->fileInfoButton, &ElaIconButton::clicked, this, &MediaViewerDelegate::readFullInfo);
 
-    connect(view->zoomInButton, &ElaIconButton::clicked, this, [=]() {
-        scaleFactor += 0.05;
+    connect(view->zoomInButton, &ElaIconButton::clicked, this, [this]() {
+        scaleFactor += 0.05; //需改为显示捕获
         if (scaleFactor > 3)
             scaleFactor = 3;
         scaleImage(scaleFactor);
@@ -101,7 +101,7 @@ void MediaViewerDelegate::initConnections() {
         view->zoomSlider->setValue(scaleFactor * 100);
     });
 
-    connect(view->zoomOutButton, &ElaIconButton::clicked, this, [=]() {
+    connect(view->zoomOutButton, &ElaIconButton::clicked, this, [this]() {
         scaleFactor -= 0.05;
         if (scaleFactor < 0.2)
             scaleFactor = 0.1;
@@ -110,17 +110,17 @@ void MediaViewerDelegate::initConnections() {
         view->zoomSlider->setValue(scaleFactor * 100);
     });
 
-    connect(view->maximizeButton, &ElaIconButton::clicked, this, [=]() {
+    connect(view->maximizeButton, &ElaIconButton::clicked, this, [this]() {
         this->view->showMaximized();
     });
 
-    connect(view->zoom2originalButton, &ElaIconButton::clicked, this, [=]() {
+    connect(view->zoom2originalButton, &ElaIconButton::clicked, this, [this]() {
         scaleImage(1.0);
         view->zoomSlider->setToolTip(QString::number(scaleFactor * 100));
         view->zoomSlider->setValue(scaleFactor * 100);
     });
 
-    connect(view->zoomSlider, &ElaSlider::valueChanged, this, [=](int value) {
+    connect(view->zoomSlider, &ElaSlider::valueChanged, this, [this](int value) {
         // range from 1% to 300%
         if (value >= 1 && value <= 300) {
             scaleImage(value / 100.0);
@@ -314,7 +314,7 @@ void MediaViewerDelegate::rotateImage() {
     QTransform transform;
     transform.rotate(90);
     loadImage(image.transformed(transform), false);
-    QtConcurrent::run([this]() { this->image.save(filepath); });
+    QFuture<void> future = QtConcurrent::run([this]() { this->image.save(filepath); });
 }
 
 bool MediaViewerDelegate::loadImage(const QString& path, bool fadeAnimation) {
@@ -331,6 +331,7 @@ bool MediaViewerDelegate::loadImage(const QString& path, bool fadeAnimation) {
             emit imageChanged(fadeAnimation);
             return true;
         }
+        return false;
     } catch (...) {
         return false;
     }
@@ -346,6 +347,7 @@ bool MediaViewerDelegate::loadImage(const QImage& image, bool fadeAnimation) {
             emit imageChanged(fadeAnimation);
             return true;
         }
+        return false;
     } catch (...) {
         return false;
     }

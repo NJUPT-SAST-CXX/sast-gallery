@@ -1,6 +1,6 @@
 #pragma once
-#include <QFileSystemWatcher>
-#include <QMap>
+#include <QFileSystemWatcher> //监控文件和目录变化
+#include <QMap>               //存储扫描结果的缓存
 #include <QObject>
 
 // scan&watch media in specific path, and update ImageList
@@ -18,47 +18,49 @@ public:
     // remove path will also remove scanned image from model
 
     // recursively init path and subfolder
-    void addPath(const QString& path);
-    void addPaths(const QStringList& paths);
+    void addPath(const QString& path);       //添加单个或多个搜索路径
+    void addPaths(const QStringList& paths); //并递归初始化这些路径
     // recursively deinit path and subfolder
-    void removePath(const QString& path);
+    void removePath(const QString& path); //移除路径
     void removePaths(const QStringList& path);
-    QStringList path();
+    QStringList path(); //返回当前搜索路径列表
 
     // manually triggered scan, will trigger signal fullScan if(fullScan)
-    void scan(bool fullScan = false);
+    void scan(bool fullScan = false); //手动触发扫描操作
 
 signals:
 
     // supposed to replace all data in model
-    void fullScan(const QStringList& filePath);
-    void fileCreated(const QStringList& filePath);
-    void fileDeleted(const QStringList& filePath);
-    void fileModified(const QStringList& filePath); // TODO: detect file modified
+    void fullScan(const QStringList& filePath);     //全量扫描
+    void fileCreated(const QStringList& filePath);  //创建新文件
+    void fileDeleted(const QStringList& filePath);  //有文件被删除
+    void fileModified(const QStringList& filePath); //有文件被修改 // TODO: detect file modified
 
 private:
-    bool initScanComplete = true;
+    bool initScanComplete = true; //初始扫描是否完成
 
-    QStringList searchPath;
-    QFileSystemWatcher diskWatcher;
+    QStringList searchPath;         //存储当前的搜索路径列表
+    QFileSystemWatcher diskWatcher; //用于监控文件系统的变化
 
     struct DiffResult {
         QStringList added;
         QStringList removed;
-    };
+    }; //存储差异结果
     // compare and signal
     static DiffResult diff(const QStringList& oldv, const QStringList& newv);
-
+    //用于比较两个文件列表的差异
     // scan specific path, path must be a subfolder of searchPath
-    QMap<QString, QStringList> cache;
-    void scanPath(const QString& path, bool fullScan = false);
+    QMap<QString, QStringList> cache; //缓存每个路径下的缓存结果
+    QMap<QString, QDateTime> fileModificationTimes;
+    void scanPath(const QString& path, bool fullScan = false); //扫描指定路径下的文件
 
     // work with scan() and scanPath(), as scan cache
-    QStringList pendingCreated, pendingDeleted;
-    void submitChange(bool fullScan = false);
+    QStringList pendingCreated, pendingDeleted, pendingModified; //暂存袋提交的新增和删除的文件列表
+    void submitChange(bool fullScan = false);                    //提交文件变化，触发相应信号
 
     // QDir name filter
     static const inline QStringList mediaFileFilter = {
+        //过滤媒体文件
         // image, ref: https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types
         "*.apng",
         "*.png",
