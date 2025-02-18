@@ -11,9 +11,6 @@ public:
     explicit FavoritePage(QAbstractItemModel* model, QWidget* parent = nullptr);
     ~FavoritePage();
 
-public slots:
-    void onAddToFav(const QString& path);
-
 private:
     GalleryWidget* centralWidget;
 };
