@@ -121,7 +121,6 @@ void DiskScanner::scanPath(const QString& path, bool fullScan) {
     }
     cache.insert(path, newCache);
     scanModified(newCache,pendingModified);
-    emit fileModified(pendingModified);
 
     auto&& [added, removed] = diff(oldCache, newCache);
     pendingCreated += added;
