@@ -82,6 +82,7 @@ bool MediaPreviewer::isFavorite() {
 
 void MediaPreviewer::initMedia() {
     if (media.type == MediaType::Video) {
+        // Try to get video resolution from metadata first
         QMediaPlayer* player = new QMediaPlayer;
         QVideoWidget* videoWidget = new QVideoWidget;
 
@@ -91,11 +92,19 @@ void MediaPreviewer::initMedia() {
         connect(player, &QMediaPlayer::mediaStatusChanged, [=](QMediaPlayer::MediaStatus status) {
             if (status == QMediaPlayer::LoadedMedia) {
                 mediaSize = player->metaData().value(QMediaMetaData::Resolution).toSize();
-                qDebug() << "Media size:" << mediaSize;
+                if (mediaSize.isEmpty()) {
+                    mediaSize = QSize(320, 180); // Default size if metadata not available
+                }
+                qDebug() << "Video size:" << mediaSize;
+                player->deleteLater();
+                videoWidget->deleteLater();
             }
         });
     } else {
         mediaSize = QImageReader(media.path).size();
+        if (mediaSize.isEmpty()) {
+            mediaSize = QSize(320, 180); // Default size if image size not available
+        }
         qDebug() << "Image size:" << mediaSize;
     }
     requireReloadImage = true;
@@ -131,12 +140,53 @@ void MediaPreviewer::loadVideoComplete() {
 }
 
 QPixmap MediaPreviewer::loadVideo() {
+    // Check if we already have a cached thumbnail
+    if (media.hasThumbnail()) {
+        QImageReader reader(media.getThumbnailPath());
+        reader.setScaledSize(QSize{320, 180});
+        return roundedPixmap(QPixmap::fromImage(reader.read()), 4);
+    }
+
+    // If no cached thumbnail, generate one
     QMediaPlayer player;
     QVideoSink videoSink;
+    QVideoFrame frame;
+    bool frameReceived = false;
+
+    // Connect to receive video frames
+    connect(&videoSink, &QVideoSink::videoFrameChanged, [&](const QVideoFrame& newFrame) {
+        if (!frameReceived) { // Only take the first frame
+            frame = newFrame;
+            frameReceived = true;
+            player.stop(); // Stop after getting first frame
+        }
+    });
+
     player.setVideoSink(&videoSink);
     player.setSource(QUrl::fromLocalFile(media.path));
+    player.play();
 
-    // Create default thumbnail
+    // Wait a bit for the frame
+    for (int i = 0; i < 10 && !frameReceived; i++) {
+        QThread::msleep(50);
+        QCoreApplication::processEvents();
+    }
+
+    // If we got a valid frame
+    if (frameReceived && frame.isValid()) {
+        QImage thumbnail = frame.toImage().scaled(320,
+                                                  180,
+                                                  Qt::KeepAspectRatio,
+                                                  Qt::SmoothTransformation);
+
+        // Save the thumbnail
+        thumbnail.save(media.getThumbnailPath(), "JPG", 90);
+
+        // Return the rounded thumbnail
+        return roundedPixmap(QPixmap::fromImage(thumbnail), 4);
+    }
+
+    // If we failed to get a frame, create a default thumbnail
     QPixmap defaultThumb(QSize(320, 180));
     defaultThumb.fill(Qt::black);
     QPainter painter(&defaultThumb);
@@ -152,13 +202,6 @@ QPixmap MediaPreviewer::loadVideo() {
     painter.drawPolygon(playIcon);
 
     return roundedPixmap(defaultThumb, 4);
-}
-
-// TODO
-bool MediaPreviewer::isVideoFile(const QString& path) const {
-    QString extension = QFileInfo(path).suffix().toLower();
-    return extension == "mp4" || extension == "avi" || extension == "mov" || extension == "wmv"
-           || extension == "mkv" || extension == "webm" || extension == "flv" || extension == "m4v";
 }
 
 void MediaPreviewer::enterEvent(QEnterEvent* event) {
