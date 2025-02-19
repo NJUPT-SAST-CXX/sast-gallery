@@ -2,6 +2,7 @@
 
 #include "component/FileInfoWidget.h"
 #include "component/ImageViewer.h"
+#include "component/VideoViewer.h"
 #include <ElaIconButton.h>
 #include <ElaSlider.h>
 #include <ElaText.h>
@@ -17,7 +18,7 @@ class MediaViewer : public ElaWidget {
 
 public:
     explicit MediaViewer(QAbstractItemModel* model, int index, QWidget* parent = nullptr);
-    ~MediaViewer();
+    ~MediaViewer() override;
     QSlider* getZoomSlider() const { return zoomSlider; }
     void initWindow();
     void initContent();
@@ -42,8 +43,11 @@ private:
     ElaIconButton* maximizeButton{};
     ElaIconButton* zoom2originalButton{};
     ElaText* fileInfoBriefText{};
-    ImageViewer* imageViewer;
-    FileInfoWidget* fileInfoWidget{};
-
     MediaViewerDelegate* delegate{};
+
+    // Content widgets
+    QWidget* contentWidget{nullptr}; // Points to either imageViewer or videoViewer
+    ImageViewer* imageViewer{nullptr};
+    VideoViewer* videoViewer{nullptr};
+    FileInfoWidget* fileInfoWidget{};
 };

@@ -5,7 +5,10 @@
 #include <QEvent>
 #include <QFutureWatcher>
 #include <QLabel>
+#include <QMediaPlayer>
 #include <QPixmap>
+#include <QVideoFrame>
+#include <QVideoSink>
 
 // display media in thumbnail, supposed to be work with ImageFlexLayout
 class MediaPreviewer : public QLabel {
@@ -31,6 +34,7 @@ signals:
 
 public slots:
     void loadImageComplete();
+    void loadVideoComplete();
 
 private:
     QString filepath;
@@ -41,12 +45,16 @@ private:
 
     bool requireReloadImage = true;
     QFutureWatcher<QPixmap> imageLoadWatcher;
+    QFutureWatcher<QPixmap> videoLoadWatcher;
 
     QPixmap originalPixmap;
+    bool isVideo;
 
     void initMedia();
     static QPixmap roundedPixmap(const QPixmap& original, double radius);
     QPixmap loadImage();
+    QPixmap loadVideo();
+    bool isVideoFile(const QString& path) const;
 
     void enterEvent(QEnterEvent* event) override;
     void leaveEvent(QEvent* event) override;

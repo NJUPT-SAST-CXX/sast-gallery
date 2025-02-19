@@ -1,4 +1,5 @@
 #include "MediaViewer.h"
+#include "component/VideoViewer.h"
 #include <ElaMenu.h>
 #include <ElaMenuBar.h>
 #include <ElaToolTip.h>
@@ -54,8 +55,18 @@ void MediaViewer::initContent() {
     menuBar->setMaximumHeight(25);
     fileMenu->setMinimumWidth(50);
 
-    // image view
-    imageViewer = new ImageViewer(QPixmap::fromImage(delegate->getImage()), this);
+    // Create appropriate viewer based on file type
+    QString filePath = delegate->getFilePath();
+    QString extension = QFileInfo(filePath).suffix().toLower();
+
+    // TODO: add more video formats
+    if (extension == "mp4" || extension == "avi" || extension == "mov" || extension == "wmv") {
+        videoViewer = new VideoViewer(filePath, this);
+        contentWidget = videoViewer;
+    } else {
+        imageViewer = new ImageViewer(QPixmap::fromImage(delegate->getImage()), this);
+        contentWidget = imageViewer;
+    }
 
     // file info widget
     fileInfoWidget = new FileInfoWidget(this);
@@ -123,7 +134,7 @@ void MediaViewer::initContent() {
     operationLayout->addWidget(maximizeButton);
     operationLayout->addWidget(zoom2originalButton);
 
-    mainMiddleAreaLayout->addWidget(imageViewer);
+    mainMiddleAreaLayout->addWidget(contentWidget);
     mainMiddleAreaLayout->addLayout(operationLayout);
 
     middleAreaLayout->addLayout(mainMiddleAreaLayout);
