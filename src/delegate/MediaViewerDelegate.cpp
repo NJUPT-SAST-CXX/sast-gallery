@@ -91,7 +91,8 @@ void MediaViewerDelegate::initConnections() {
 
     connect(view->likeButton, &ElaIconButton::clicked, this, [=]() {
         //TODO(must): implement the like functionality
-        // add the image to Favorite Page
+        auto index = mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite);
+        mediaListModel->setData(index, true, Qt::EditRole);
     });
 
     connect(view->fileInfoButton,
