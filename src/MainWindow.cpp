@@ -4,11 +4,15 @@
 #include "utils/Settings.hpp"
 
 MainWindow::MainWindow(QWidget* parent)
-    : ElaWindow(parent) {
+    : ElaWindow(parent)
+{
     initWindow();
     initModel();
     initContent();
     moveToCenter();
+    QObject::connect(this,&QObject::destroyed,[=,this](){
+        mediaModel->saveisFavorite("isFavorite.txt");
+    });
 }
 
 MainWindow::~MainWindow() {
@@ -42,6 +46,7 @@ void MainWindow::initContent() {
 
 void MainWindow::initModel() {
     mediaModel = new MediaListModel();
+    mediaModel->loadisFavorite("isFavorite.txt");
 
     galleryModel = new QSortFilterProxyModel();
     galleryModel->setSourceModel(mediaModel);
@@ -62,3 +67,5 @@ void MainWindow::initModel() {
 
     diskScanner->scan();
 }
+
+

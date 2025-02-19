@@ -12,4 +12,4 @@ FavoritePage::FavoritePage(QAbstractItemModel* model, QWidget* parent)
     addCentralWidget(centralWidget);
 }
 
-FavoritePage::~FavoritePage() {}
+FavoritePage::~FavoritePage() = default;

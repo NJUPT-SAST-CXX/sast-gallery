@@ -90,6 +90,20 @@ void DiskScanner::scan(bool fullScan) {
     submitChange(fullScan);
 }
 
+//4
+void DiskScanner::scanModified(const QStringList& filePath, QStringList pendingModified)
+{
+    for(auto it=filePath.begin();it<filePath.end();it++)
+    {
+        QFileInfo file(*it);
+        if(file.lastModified()!=file.birthTime())
+        {
+            pendingModified.append(*it);
+        }
+        qDebug()<<"scan: Modified"<<*it;
+    }
+}
+
 void DiskScanner::scanPath(const QString& path, bool fullScan) {
     if (!diskWatcher.directories().contains(path)) {
         // run remove
@@ -106,6 +120,7 @@ void DiskScanner::scanPath(const QString& path, bool fullScan) {
         newCache += entry.absoluteFilePath();
     }
     cache.insert(path, newCache);
+    scanModified(newCache,pendingModified);
 
     auto&& [added, removed] = diff(oldCache, newCache);
     pendingCreated += added;
@@ -117,6 +132,7 @@ void DiskScanner::submitChange(bool fullScan) {
         emit DiskScanner::fullScan(pendingCreated);
         pendingCreated.clear();
         pendingDeleted.clear();
+        pendingModified.clear();
         return;
     }
     if (pendingCreated.size() != 0) {
@@ -126,6 +142,10 @@ void DiskScanner::submitChange(bool fullScan) {
     if (pendingDeleted.size() != 0) {
         emit fileDeleted(pendingDeleted);
         pendingDeleted.clear();
+    }
+    if (pendingModified.size() != 0) {
+        emit fileModified(pendingModified);
+        pendingModified.clear();
     }
 }
 

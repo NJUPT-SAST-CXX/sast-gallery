@@ -21,6 +21,7 @@ public:
     [[nodiscard]] auto getImage() const { return this->image; }
     void initConnections();
 
+
 signals:
     void scaledByWheel();
     void imageChanged(bool fadeAnimation = true);
@@ -42,6 +43,7 @@ public slots:
 private:
     QAbstractItemModel* mediaListModel;
     QPersistentModelIndex mediaIndex;
+    QPersistentModelIndex _mediaIndex;
     QImage image;
     QString filepath;
     MediaViewer* view;
