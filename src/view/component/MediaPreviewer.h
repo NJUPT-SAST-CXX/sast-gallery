@@ -6,6 +6,7 @@
 #include <QFutureWatcher>
 #include <QLabel>
 #include <QPixmap>
+#include <view/MediaViewer.h>
 
 // display media in thumbnail, supposed to be work with ImageFlexLayout
 class MediaPreviewer : public QLabel {
@@ -58,4 +59,6 @@ private:
     QPixmap scalePixmapContent(qreal scaleFactor);
 
     void scaleAnimation(qreal startScale, qreal endScale, int duration = 200);
+
+    MediaViewer* viewer = nullptr;
 };

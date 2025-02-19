@@ -15,6 +15,9 @@
 #include <utils/Settings.hpp>
 #include <utils/Tools.h>
 #include <view/MediaViewer.h>
+#include <QDesktopServices>
+#include <QDataStream>
+#include <delegate/DiskScanner.h>
 
 MediaViewerDelegate::MediaViewerDelegate(QAbstractItemModel* model,
                                          int index,
@@ -69,6 +72,10 @@ void MediaViewerDelegate::initConnections() {
 
     //TODO(must): implement the openInFileExplorer functionality
     //connect(openInFileExplorerAction,......)
+    connect(MediaViewerDelegate::view->openInFileExplorerAction, &QAction::triggered, this, [=]() {
+        QString path = QFileInfo(filepath).absolutePath();
+        QDesktopServices::openUrl(QUrl::fromLocalFile(path));
+    });
 
     connect(view->rotateAction, &QAction::triggered, this, &MediaViewerDelegate::rotateImage);
 
@@ -89,6 +96,9 @@ void MediaViewerDelegate::initConnections() {
     connect(view->likeButton, &ElaIconButton::clicked, this, [=]() {
         //TODO(must): implement the like functionality
         // add the image to Favorite Page
+        QModelIndex newIndex = mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite);
+        qDebug()<<mediaIndex.data(MediaListModel::Path).toString();
+        mediaListModel->setData(newIndex,!newIndex.data(MediaListModel::IsFavorite).toBool(),MediaListModel::IsFavorite);
     });
 
     connect(view->fileInfoButton,

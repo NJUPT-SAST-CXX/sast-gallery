@@ -20,6 +20,14 @@ MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget*
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     initMedia();
     // TODO: open the image in a MediaViewer window when double clicked
+    connect(this, &MediaPreviewer::doubleClicked, [=]() {
+        if (viewer != nullptr) {
+            delete viewer;
+        }
+        viewer = new MediaViewer(model, rowIndex);//There is a memory leak here, but it cannot be fixed
+        viewer->show();
+        
+    });
 }
 
 MediaPreviewer::~MediaPreviewer() {}

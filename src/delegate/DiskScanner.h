@@ -57,6 +57,10 @@ private:
     QStringList pendingCreated, pendingDeleted;
     void submitChange(bool fullScan = false);
 
+    QStringList pendingModified;
+    QMap<QString, QDateTime> oldlastModified;
+    QStringList lastModified(const QMap<QString, QDateTime>& oldt, const QMap<QString, QDateTime>& newt);
+
     // QDir name filter
     static const inline QStringList mediaFileFilter = {
         // image, ref: https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types
