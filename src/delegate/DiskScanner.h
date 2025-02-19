@@ -41,6 +41,7 @@ private:
 
     QStringList searchPath;
     QFileSystemWatcher diskWatcher;
+    QMap<QString, QDateTime> lastModifiedCache;
 
     struct DiffResult {
         QStringList added;
