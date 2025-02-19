@@ -4,44 +4,44 @@
 MediaListModel::MediaListModel(QObject* parent)
     : QAbstractTableModel(parent) {}
 
-MediaListModel::~MediaListModel() {}
+MediaListModel::~MediaListModel() = default;
 
 int MediaListModel::rowCount(const QModelIndex& parent) const {
     return path.size();
-}
+} //行数统计
 
 int MediaListModel::columnCount(const QModelIndex& parent) const {
     return 3;
-}
+} //列数固定为3列
 
 QVariant MediaListModel::data(const QModelIndex& index, int role) const {
     if (!index.isValid() || index.row() >= rowCount() || index.column() >= columnCount()) {
         return {};
-    }
+    } //检查索引是否有效
 
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
         switch (Property(index.column())) {
         case Property::Path:
-            return path.value(index.row());
+            return path.value(index.row()); //返回对应行的路径
         case Property::LastModifiedTime:
             return lastModifiedTime.value(index.row());
         case Property::IsFavorite:
-            return isFavorite.contains(path.value(index.row()));
+            return isFavorite.contains(path.value(index.row())); //返回的是是否包含
         }
     }
     return {};
-}
+} //相应数据
 
 Qt::ItemFlags MediaListModel::flags(const QModelIndex& index) const {
     if (!index.isValid()) {
         return Qt::ItemIsEnabled;
-    }
+    } //如果索引无效
     switch (Property(index.column())) {
     case Property::Path:
     case Property::LastModifiedTime:
         return QAbstractTableModel::flags(index);
     case Property::IsFavorite:
-        return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
+        return QAbstractTableModel::flags(index) | Qt::ItemIsEditable; //表示可编辑
     }
     return Qt::ItemIsEnabled;
 }
@@ -59,7 +59,7 @@ QVariant MediaListModel::headerData(int section, Qt::Orientation orientation, in
         return "IsFavorite";
     }
     return {};
-}
+} //表头数据
 
 bool MediaListModel::setData(const QModelIndex& index, const QVariant& value, int role) {
     if (!index.isValid() || index.row() >= rowCount() || index.column() != Property::IsFavorite) {
@@ -67,49 +67,50 @@ bool MediaListModel::setData(const QModelIndex& index, const QVariant& value, in
     }
     if (role == Qt::EditRole) {
         if (value.value<bool>()) {
-            isFavorite.insert(path.value(index.row()));
+            isFavorite.insert(path.value(index.row())); //将路径添加到iF中，并发出信号
             dataChanged(index, index);
         } else {
-            isFavorite.remove(path.value(index.row()));
+            isFavorite.remove(path.value(index.row())); //移除路径
             dataChanged(index, index);
         }
     }
     return false;
-}
+} //设置数据
 
 void MediaListModel::resetEntries(const QStringList& paths) {
-    beginResetModel();
-    path = paths;
-    lastModifiedTime.clear();
+    beginResetModel();        //开始重构模型
+    path = paths;             //更新列表
+    lastModifiedTime.clear(); //清空列表
     for (auto& filePath : path) {
         lastModifiedTime += QFileInfo(filePath).lastModified();
     }
     endResetModel();
-}
+} //重置模型中的条目
 
 void MediaListModel::appendEntries(const QStringList& paths) {
-    beginInsertRows({}, path.size(), path.size() + paths.size() - 1);
-    path += paths;
+    beginInsertRows({}, path.size(), path.size() + paths.size() - 1); //开始并指定插入行
+    path += paths;                                                    //追加
     for (auto& filePath : paths) {
         lastModifiedTime += QFileInfo(filePath).lastModified();
-    }
+    } //计算最后修改时间
     endInsertRows();
 }
 
 void MediaListModel::removeEntries(const QStringList& paths) {
     for (auto& filePath : paths) {
-        auto row = path.indexOf(filePath);
+        auto row = path.indexOf(filePath); //找到行号
         beginRemoveRows({}, row, row);
         path.remove(row);
         lastModifiedTime.remove(row);
         endRemoveRows();
     }
-}
+} //删除条目
 
 void MediaListModel::modifiedEntries(const QStringList& paths) {
     for (auto& filePath : paths) {
         auto row = path.indexOf(filePath);
         lastModifiedTime.replace(row, QFileInfo(filePath).lastModified());
-        dataChanged(index(row, Property::LastModifiedTime), index(row, Property::LastModifiedTime));
+        dataChanged(index(row, Property::LastModifiedTime),
+                    index(row, Property::LastModifiedTime)); //发送信号
     }
-}
+} //修改条目

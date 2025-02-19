@@ -33,6 +33,9 @@ public slots:
     void loadImageComplete();
 
 private:
+    QAbstractItemModel* model;
+    int rowIndex;
+
     QString filepath;
     QDateTime lastModified;
     bool isFav;

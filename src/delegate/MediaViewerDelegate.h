@@ -20,6 +20,7 @@ public:
     [[nodiscard]] auto getFilePath() const { return filepath; }
     [[nodiscard]] auto getImage() const { return this->image; }
     void initConnections();
+    void setFilePath(const QString& path);
 
 signals:
     void scaledByWheel();
@@ -30,14 +31,15 @@ public slots:
     void onImageChanged(bool fadeAnimation = true);
     void onWheelScrolled(int delta);
     bool copyImageToClipboard(); //将当前图像复制到剪切板
-    void openImageFileDialog();  //打开文件对话框
-    void saveImageFileDialog();
-    void onFileInfoClicked();
-    void adaptiveResize();
-    void deleteImage();
-    void prevImage();
-    void nextImage();
-    void rotateImage();
+    void openImageFileDialog();  //打开文件对话框,用于选择要查看的图像文件
+    void saveImageFileDialog();  //打开保存文件的对话框，用于保存当前图像
+    void onFileInfoClicked();    //
+    void adaptiveResize();       //自适应调整图像的大小以适应查看器窗口
+    void deleteImage();          //删除当前图像
+    void prevImage();            //切换到上一图像
+    void nextImage();            //切换到下一图像
+    void rotateImage();          //旋转当前图像
+    void openInFileExplorer();
 
 private:
     QAbstractItemModel* mediaListModel;

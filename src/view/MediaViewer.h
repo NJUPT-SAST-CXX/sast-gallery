@@ -21,6 +21,7 @@ public:
     QSlider* getZoomSlider() const { return zoomSlider; }
     void initWindow();
     void initContent();
+    void setFilePath(const QString& path);
 
 private:
     QAction* rotateAction{};
