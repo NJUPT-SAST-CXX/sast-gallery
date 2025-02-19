@@ -1,4 +1,5 @@
 #include "MediaPreviewer.h"
+#include "view/MediaViewer.h"
 #include <QImageReader>
 #include <QPainter>
 #include <QPainterPath>
@@ -20,6 +21,10 @@ MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget*
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     initMedia();
     // TODO: open the image in a MediaViewer window when double clicked
+    connect(this, &MediaPreviewer::doubleClicked, this, [=] {
+        auto newWindowViewer = new MediaViewer(model, rowIndex);
+        newWindowViewer->show();
+    });
 }
 
 MediaPreviewer::~MediaPreviewer() {}

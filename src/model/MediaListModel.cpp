@@ -1,8 +1,18 @@
 #include "MediaListModel.h"
 #include <QDir>
+#include <QFile>
 
 MediaListModel::MediaListModel(QObject* parent)
-    : QAbstractTableModel(parent) {}
+    : QAbstractTableModel(parent) {
+    QFile file("data1.bin");
+    if (file.exists()) {
+        if (file.open(QIODevice::ReadWrite)) {
+            QDataStream reading(&file);
+            reading >> isFavorite;
+        }
+        file.close();
+    }
+}
 
 MediaListModel::~MediaListModel() {}
 
@@ -62,15 +72,26 @@ QVariant MediaListModel::headerData(int section, Qt::Orientation orientation, in
 }
 
 bool MediaListModel::setData(const QModelIndex& index, const QVariant& value, int role) {
+    QFile file("data1.bin");
     if (!index.isValid() || index.row() >= rowCount() || index.column() != Property::IsFavorite) {
         return false;
     }
     if (role == Qt::EditRole) {
         if (value.value<bool>()) {
             isFavorite.insert(path.value(index.row()));
+            if (file.open(QIODevice::ReadWrite)) {
+                QDataStream writing(&file);
+                writing << isFavorite;
+            }
+            file.close();
             dataChanged(index, index);
         } else {
             isFavorite.remove(path.value(index.row()));
+            if (file.open(QIODevice::ReadWrite)) {
+                QDataStream writing(&file);
+                writing << isFavorite;
+            }
+            file.close();
             dataChanged(index, index);
         }
     }

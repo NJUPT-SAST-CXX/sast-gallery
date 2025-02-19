@@ -68,7 +68,10 @@ void MediaViewerDelegate::initConnections() {
             &MediaViewerDelegate::saveImageFileDialog);
 
     //TODO(must): implement the openInFileExplorer functionality
-    //connect(openInFileExplorerAction,......)
+    connect(view->openInFileExplorerAction,
+            &QAction::triggered,
+            this,
+            &MediaViewerDelegate::openInFileExplorer);
 
     connect(view->rotateAction, &QAction::triggered, this, &MediaViewerDelegate::rotateImage);
 
@@ -88,7 +91,8 @@ void MediaViewerDelegate::initConnections() {
 
     connect(view->likeButton, &ElaIconButton::clicked, this, [=]() {
         //TODO(must): implement the like functionality
-        // add the image to Favorite Page
+        auto index = mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite);
+        mediaListModel->setData(index, true, Qt::EditRole);
     });
 
     connect(view->fileInfoButton,
@@ -206,6 +210,13 @@ void MediaViewerDelegate::saveImageFileDialog() {
         this->image.save(filepath);
     }
 }
+
+void MediaViewerDelegate::openInFileExplorer() {
+    QStringList arguments;
+    arguments << QLatin1String("/select,");
+    arguments << QDir::toNativeSeparators(filepath);
+    QProcess::startDetached("explorer", arguments);
+};
 
 void MediaViewerDelegate::onFileInfoClicked() {
     auto* fileInfoAnimation = new QPropertyAnimation(view->fileInfoWidget, "width");
