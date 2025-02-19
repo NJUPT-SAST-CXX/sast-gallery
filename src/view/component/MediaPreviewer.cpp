@@ -13,11 +13,10 @@
 
 MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget* parent)
     : QLabel(parent)
-    , isVideo(false) {
-    filepath = model->data(model->index(rowIndex, MediaListModel::Path)).value<QString>();
-    lastModified = model->data(model->index(rowIndex, MediaListModel::LastModifiedTime))
-                       .value<QDateTime>();
-    isFav = model->data(model->index(rowIndex, MediaListModel::IsFavorite)).value<bool>();
+    , media(model->data(model->index(rowIndex, MediaListModel::Path)).value<QString>(),
+            model->data(model->index(rowIndex, MediaListModel::LastModifiedTime)).value<QDateTime>(),
+            model->data(model->index(rowIndex, MediaListModel::IsFavorite)).value<bool>())
+    , requireReloadImage(true) {
     connect(&imageLoadWatcher,
             &QFutureWatcher<QPixmap>::finished,
             this,
@@ -42,7 +41,7 @@ MediaPreviewer::~MediaPreviewer() {}
 void MediaPreviewer::paintEvent(QPaintEvent* event) {
     QLabel::paintEvent(event);
     if (requireReloadImage) {
-        if (isVideo) {
+        if (media.type == MediaType::Video) {
             videoLoadWatcher.setFuture(QtConcurrent::run(&MediaPreviewer::loadVideo, this));
         } else {
             imageLoadWatcher.setFuture(QtConcurrent::run(&MediaPreviewer::loadImage, this));
@@ -57,39 +56,37 @@ QSize MediaPreviewer::sizeHint() const {
 }
 
 void MediaPreviewer::setPath(const QString& path) {
-    filepath = path;
+    media = Media(path, media.lastModified, media.isFavorite);
     initMedia();
 }
 void MediaPreviewer::setLastModifiedTime(const QDateTime& time) {
-    lastModified = time;
+    media.lastModified = time;
     initMedia();
 }
 
 void MediaPreviewer::setIsFavorite(bool isFavorite) {
-    isFav = isFavorite;
+    media.isFavorite = isFavorite;
 }
 
 QString MediaPreviewer::path() {
-    return filepath;
+    return media.path;
 }
 
 QDateTime MediaPreviewer::lastModifiedTime() {
-    return lastModified;
+    return media.lastModified;
 }
 
 bool MediaPreviewer::isFavorite() {
-    return isFav;
+    return media.isFavorite;
 }
 
 void MediaPreviewer::initMedia() {
-    isVideo = isVideoFile(filepath);
-    if (isVideo) {
-        // For video files, set a default size initially
+    if (media.type == MediaType::Video) {
         QMediaPlayer* player = new QMediaPlayer;
         QVideoWidget* videoWidget = new QVideoWidget;
 
         player->setVideoOutput(videoWidget);
-        player->setSource(QUrl::fromLocalFile(filepath));
+        player->setSource(QUrl::fromLocalFile(media.path));
 
         connect(player, &QMediaPlayer::mediaStatusChanged, [=](QMediaPlayer::MediaStatus status) {
             if (status == QMediaPlayer::LoadedMedia) {
@@ -97,31 +94,8 @@ void MediaPreviewer::initMedia() {
                 qDebug() << "Media size:" << mediaSize;
             }
         });
-
-        // player->play();
-
-        // // Create a default video thumbnail with play icon
-        // QPixmap defaultThumb(mediaSize);
-        // defaultThumb.fill(Qt::black);
-        // QPainter painter(&defaultThumb);
-
-        // // Draw play icon
-        // QPolygon playIcon;
-        // int iconSize = 40;
-        // playIcon << QPoint(mediaSize.width() / 2 - iconSize / 2,
-        //                    mediaSize.height() / 2 - iconSize / 2)
-        //          << QPoint(mediaSize.width() / 2 - iconSize / 2,
-        //                    mediaSize.height() / 2 + iconSize / 2)
-        //          << QPoint(mediaSize.width() / 2 + iconSize / 2, mediaSize.height() / 2);
-
-        // painter.setPen(Qt::NoPen);
-        // painter.setBrush(Qt::white);
-        // painter.drawPolygon(playIcon);
-
-        // originalPixmap = roundedPixmap(defaultThumb, 4);
-        // setPixmap(originalPixmap);
     } else {
-        mediaSize = QImageReader(filepath).size();
+        mediaSize = QImageReader(media.path).size();
         qDebug() << "Image size:" << mediaSize;
     }
     requireReloadImage = true;
@@ -146,7 +120,7 @@ void MediaPreviewer::loadImageComplete() {
 }
 
 QPixmap MediaPreviewer::loadImage() {
-    QImageReader reader(filepath);
+    QImageReader reader(media.path);
     reader.setScaledSize(QSize{0, 180});
     return roundedPixmap(QPixmap::fromImage(reader.read()), 4);
 }
@@ -160,7 +134,7 @@ QPixmap MediaPreviewer::loadVideo() {
     QMediaPlayer player;
     QVideoSink videoSink;
     player.setVideoSink(&videoSink);
-    player.setSource(QUrl::fromLocalFile(filepath));
+    player.setSource(QUrl::fromLocalFile(media.path));
 
     // Create default thumbnail
     QPixmap defaultThumb(QSize(320, 180));

@@ -9,12 +9,14 @@
 #include <QPixmap>
 #include <QVideoFrame>
 #include <QVideoSink>
+#include <QVideoWidget>
+#include <model/Media.h>
 
 // display media in thumbnail, supposed to be work with ImageFlexLayout
 class MediaPreviewer : public QLabel {
     Q_OBJECT
 public:
-    explicit MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget* parent = nullptr);
+    MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget* parent = nullptr);
     ~MediaPreviewer();
 
     // load image when show
@@ -36,19 +38,20 @@ public slots:
     void loadImageComplete();
     void loadVideoComplete();
 
+protected:
+    void enterEvent(QEnterEvent* event) override;
+    void leaveEvent(QEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
+
 private:
-    QString filepath;
-    QDateTime lastModified;
-    bool isFav;
-
+    Media media;
     QSize mediaSize;
-
-    bool requireReloadImage = true;
+    QPixmap originalPixmap;
+    bool requireReloadImage;
     QFutureWatcher<QPixmap> imageLoadWatcher;
     QFutureWatcher<QPixmap> videoLoadWatcher;
-
-    QPixmap originalPixmap;
-    bool isVideo;
 
     void initMedia();
     static QPixmap roundedPixmap(const QPixmap& original, double radius);
@@ -56,14 +59,6 @@ private:
     QPixmap loadVideo();
     bool isVideoFile(const QString& path) const;
 
-    void enterEvent(QEnterEvent* event) override;
-    void leaveEvent(QEvent* event) override;
-    void mousePressEvent(QMouseEvent* event) override;
-    void mouseReleaseEvent(QMouseEvent* event) override;
-    void mouseDoubleClickEvent(QMouseEvent* event) override;
-
-    // scale the content while keeping the geometry for layout stability
+    void scaleAnimation(qreal startScale, qreal endScale, int duration = 100);
     QPixmap scalePixmapContent(qreal scaleFactor);
-
-    void scaleAnimation(qreal startScale, qreal endScale, int duration = 200);
 };
