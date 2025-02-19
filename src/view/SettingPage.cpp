@@ -103,11 +103,13 @@ SettingPage::SettingPage(QWidget* parent)
             QOverload<int>::of(&ElaComboBox::currentIndexChanged),
             this,
             [=](int index) {
-                if (index == 0) {
-                    settings.setValue("wheelBehavior",0);
-                } else {
-                    settings.setValue("wheelBehavior",1);
-                }
+                                    settings.setValue("wheelBehavior",index);
+//                if (index == 0) {
+//                }
+//                    settings.setValue("wheelBehavior",0);
+//                } else {
+//                    settings.setValue("wheelBehavior",1);
+//                }
             });
     // TODO: implement the rest
 
@@ -116,16 +118,7 @@ SettingPage::SettingPage(QWidget* parent)
                                                    deletionSwitchButton);
     connect(deletionSwitchButton,&ElaToggleSwitch::toggled,this,[=](bool checked)
             {
-                if(checked)
-                {
-                    settings.setValue("confirmDeletion",checked);
-                }
-                else
-                {
-                    settings.setValue("conFirmDeletion",checked);
-                }
-
-
+        settings.setValue("confirmDeletion",checked);
             });
     // TODO: implement the rest
 
