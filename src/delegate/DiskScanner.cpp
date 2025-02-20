@@ -96,9 +96,10 @@ void DiskScanner::scanModified(const QStringList& filePath, QStringList pendingM
     for(auto it=filePath.begin();it<filePath.end();it++)
     {
         QFileInfo file(*it);
-        if(file.lastModified()!=file.birthTime())
+        if(file.lastModified().toString()!=file.birthTime().toString())
         {
             pendingModified.append(*it);
+            qDebug() <<*it<<" is Modefied";
         }
         qDebug()<<"scan: Modified"<<*it;
     }
