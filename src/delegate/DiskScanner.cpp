@@ -110,6 +110,7 @@ void DiskScanner::scanPath(const QString& path, bool fullScan) {
         if (!fullScan && lastModifiedCache.contains(filePath)) {
             if (lastModified > lastModifiedCache[filePath]) {
                 modifiedFiles.append(filePath);
+                emit fileModified(modifiedFiles);
             }
         }
         lastModifiedCache[filePath] = lastModified;
@@ -120,9 +121,6 @@ void DiskScanner::scanPath(const QString& path, bool fullScan) {
     auto&& [added, removed] = diff(oldCache, newCache);
     pendingCreated += added;
     pendingDeleted += removed;
-    if (!modifiedFiles.isEmpty()) {
-        emit fileModified(modifiedFiles);
-    }
 }
 
 void DiskScanner::submitChange(bool fullScan) {
