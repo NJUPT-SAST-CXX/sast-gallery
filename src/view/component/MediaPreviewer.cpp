@@ -18,11 +18,11 @@ MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget*
             model->data(model->index(rowIndex, MediaListModel::IsFavorite)).value<bool>())
     , requireReloadImage(true) {
     connect(&imageLoadWatcher,
-            &QFutureWatcher<QPixmap>::finished,
+            &QFutureWatcher<QPixmap*>::finished,
             this,
             &MediaPreviewer::loadImageComplete);
     connect(&videoLoadWatcher,
-            &QFutureWatcher<QPixmap>::finished,
+            &QFutureWatcher<QPixmap*>::finished,
             this,
             &MediaPreviewer::loadVideoComplete);
     setScaledContents(true);
@@ -92,19 +92,13 @@ void MediaPreviewer::initMedia() {
         connect(player, &QMediaPlayer::mediaStatusChanged, [=](QMediaPlayer::MediaStatus status) {
             if (status == QMediaPlayer::LoadedMedia) {
                 mediaSize = player->metaData().value(QMediaMetaData::Resolution).toSize();
-                if (mediaSize.isEmpty()) {
-                    mediaSize = QSize(320, 180); // Default size if metadata not available
-                }
-                qDebug() << "Video size:" << mediaSize;
                 player->deleteLater();
                 videoWidget->deleteLater();
             }
         });
+        qDebug() << "Video size:" << mediaSize;
     } else {
         mediaSize = QImageReader(media.path).size();
-        if (mediaSize.isEmpty()) {
-            mediaSize = QSize(320, 180); // Default size if image size not available
-        }
         qDebug() << "Image size:" << mediaSize;
     }
     requireReloadImage = true;
@@ -143,7 +137,7 @@ QPixmap MediaPreviewer::loadVideo() {
     // Check if we already have a cached thumbnail
     if (media.hasThumbnail()) {
         QImageReader reader(media.getThumbnailPath());
-        reader.setScaledSize(QSize{320, 180});
+        reader.setScaledSize(QSize{0, 180});
         return roundedPixmap(QPixmap::fromImage(reader.read()), 4);
     }
 
@@ -172,36 +166,13 @@ QPixmap MediaPreviewer::loadVideo() {
         QCoreApplication::processEvents();
     }
 
-    // If we got a valid frame
-    if (frameReceived && frame.isValid()) {
-        QImage thumbnail = frame.toImage().scaled(320,
-                                                  180,
-                                                  Qt::KeepAspectRatio,
-                                                  Qt::SmoothTransformation);
+    QImage thumbnail = frame.toImage().scaled(mediaSize,
+                                              Qt::KeepAspectRatio,
+                                              Qt::SmoothTransformation);
 
-        // Save the thumbnail
-        thumbnail.save(media.getThumbnailPath(), "JPG", 90);
+    thumbnail.save(media.getThumbnailPath());
 
-        // Return the rounded thumbnail
-        return roundedPixmap(QPixmap::fromImage(thumbnail), 4);
-    }
-
-    // If we failed to get a frame, create a default thumbnail
-    QPixmap defaultThumb(QSize(320, 180));
-    defaultThumb.fill(Qt::black);
-    QPainter painter(&defaultThumb);
-
-    // Draw play icon
-    QPolygon playIcon;
-    int iconSize = 40;
-    playIcon << QPoint(160 - iconSize / 2, 90 - iconSize / 2)
-             << QPoint(160 - iconSize / 2, 90 + iconSize / 2) << QPoint(160 + iconSize / 2, 90);
-
-    painter.setPen(Qt::NoPen);
-    painter.setBrush(Qt::white);
-    painter.drawPolygon(playIcon);
-
-    return roundedPixmap(defaultThumb, 4);
+    return roundedPixmap(QPixmap::fromImage(thumbnail), 4);
 }
 
 void MediaPreviewer::enterEvent(QEnterEvent* event) {
