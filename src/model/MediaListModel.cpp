@@ -72,26 +72,17 @@ QVariant MediaListModel::headerData(int section, Qt::Orientation orientation, in
 }
 
 bool MediaListModel::setData(const QModelIndex& index, const QVariant& value, int role) {
-    QFile file("data1.bin");
     if (!index.isValid() || index.row() >= rowCount() || index.column() != Property::IsFavorite) {
         return false;
     }
     if (role == Qt::EditRole) {
         if (value.value<bool>()) {
             isFavorite.insert(path.value(index.row()));
-            if (file.open(QIODevice::ReadWrite)) {
-                QDataStream writing(&file);
-                writing << isFavorite;
-            }
-            file.close();
+            writeFavToFile();
             dataChanged(index, index);
         } else {
             isFavorite.remove(path.value(index.row()));
-            if (file.open(QIODevice::ReadWrite)) {
-                QDataStream writing(&file);
-                writing << isFavorite;
-            }
-            file.close();
+            writeFavToFile();
             dataChanged(index, index);
         }
     }
@@ -133,4 +124,13 @@ void MediaListModel::modifiedEntries(const QStringList& paths) {
         lastModifiedTime.replace(row, QFileInfo(filePath).lastModified());
         dataChanged(index(row, Property::LastModifiedTime), index(row, Property::LastModifiedTime));
     }
+}
+
+void MediaListModel::writeFavToFile() {
+    QFile file("data1.bin");
+    if (file.open(QIODevice::ReadWrite)) {
+        QDataStream writing(&file);
+        writing << isFavorite;
+    }
+    file.close();
 }

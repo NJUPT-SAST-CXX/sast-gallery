@@ -26,6 +26,9 @@ public:
 
     enum Property { Path = 0, LastModifiedTime = 1, IsFavorite = 2 };
 
+private:
+    void writeFavToFile();
+
 public slots:
 
     // for signals from disk scanner
