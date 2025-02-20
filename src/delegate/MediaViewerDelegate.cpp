@@ -430,7 +430,7 @@ void MediaViewerDelegate::updateLikeButtonState() {
             // favorite state: normal is pink, hover is pinker
             view->likeButton->setLightIconColor(QColor("#FF4081"));
             view->likeButton->setDarkIconColor(QColor("#FF4081"));
-            view->likeButton->setLightHoverIconColor(QColor("#E91E63"));    
+            view->likeButton->setLightHoverIconColor(QColor("#E91E63"));
             view->likeButton->setDarkHoverIconColor(QColor("#E91E63"));
         } else {
             // not favorite state: normal mode as others
