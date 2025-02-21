@@ -15,6 +15,9 @@
 #include <utils/Settings.hpp>
 #include <utils/Tools.h>
 #include <view/MediaViewer.h>
+#include <QDesktopServices>
+#include <QUrl>
+#include <QDir>
 
 MediaViewerDelegate::MediaViewerDelegate(QAbstractItemModel* model,
                                          int index,
@@ -125,6 +128,11 @@ void MediaViewerDelegate::initConnections() {
             &ImageViewer::wheelScrolled,
             this,
             &MediaViewerDelegate::onWheelScrolled);
+            
+    connect(view->openInFileExplorerAction, 
+            &QAction::triggered, 
+            this, 
+            &MediaViewerDelegate::openInFileExplorer);
 }
 
 void MediaViewerDelegate::onModelRowsToBeRemoved(const QModelIndex& parent, int first, int last) {
@@ -381,4 +389,25 @@ void MediaViewerDelegate::scaleTo(int percent) {
 
 int MediaViewerDelegate::getScale() const {
     return view->imageViewer->getScale();
+}
+
+void MediaViewerDelegate::openInFileExplorer() {
+    QFileInfo fileInfo(filepath);
+    if (fileInfo.exists()) {
+        // 在Windows上使用explorer.exe /select,文件路径 来定位到文件
+        #ifdef Q_OS_WIN
+            QStringList args;
+            args << "/select," << QDir::toNativeSeparators(filepath);
+            QProcess::startDetached("explorer", args);
+        #else
+            // 在其他平台上打开包含文件的文件夹
+            QDesktopServices::openUrl(QUrl::fromLocalFile(fileInfo.dir().absolutePath()));
+        #endif
+    } else {
+        ElaMessageBar::error(ElaMessageBarType::Bottom,
+                            "File not found!",
+                            nullptr,
+                            2000,
+                            view->imageViewer);
+    }
 }
