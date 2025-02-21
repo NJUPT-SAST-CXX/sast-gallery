@@ -32,11 +32,13 @@ MediaViewerDelegate::MediaViewerDelegate(QAbstractItemModel* model,
     loadImage(filepath);
 }
 
-void MediaViewerDelegate::initConnections() {
+void MediaViewerDelegate::init() {
     if (view && view->likeButton) {
         updateLikeButtonState();
     }
+}
 
+void MediaViewerDelegate::initConnections() {
     // connect to actions
     connect(mediaListModel,
             &QAbstractItemModel::rowsAboutToBeRemoved,
@@ -74,6 +76,10 @@ void MediaViewerDelegate::initConnections() {
             &QAction::triggered,
             this,
             &MediaViewerDelegate::saveImageFileDialog);
+    connect(view->openInFileExplorerAction,
+            &QAction::triggered,
+            this,
+            &MediaViewerDelegate::openInFileExplorer);
 
     connect(view->rotateAction, &QAction::triggered, this, &MediaViewerDelegate::rotateImage);
 
@@ -91,16 +97,10 @@ void MediaViewerDelegate::initConnections() {
 
     connect(view->nextAction, &QAction::triggered, this, &MediaViewerDelegate::nextImage);
 
-    connect(view->likeButton, &ElaIconButton::clicked, this, [this]() {
-        bool currentState = mediaListModel
-                                ->data(mediaListModel->index(mediaIndex.row(),
-                                                             MediaListModel::IsFavorite))
-                                .toBool();
-        mediaListModel->setData(mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite),
-                                !currentState,
-                                Qt::EditRole);
-        updateLikeButtonState();
-    });
+    connect(view->likeButton,
+            &ElaIconButton::clicked,
+            this,
+            &MediaViewerDelegate::onLikeButtonClicked);
 
     connect(view->fileInfoButton,
             &ElaIconButton::clicked,
@@ -136,11 +136,6 @@ void MediaViewerDelegate::initConnections() {
             &ImageViewer::wheelScrolled,
             this,
             &MediaViewerDelegate::onWheelScrolled);
-
-    connect(view->openInFileExplorerAction,
-            &QAction::triggered,
-            this,
-            &MediaViewerDelegate::openInFileExplorer);
 }
 
 void MediaViewerDelegate::onModelRowsToBeRemoved(const QModelIndex& parent, int first, int last) {
@@ -224,6 +219,17 @@ void MediaViewerDelegate::saveImageFileDialog() {
     }
 }
 
+void MediaViewerDelegate::onLikeButtonClicked() {
+    bool currentState = mediaListModel
+                            ->data(
+                                mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite))
+                            .toBool();
+    mediaListModel->setData(mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite),
+                            !currentState,
+                            Qt::EditRole);
+    updateLikeButtonState();
+}
+
 void MediaViewerDelegate::onFileInfoClicked() {
     auto* fileInfoAnimation = new QPropertyAnimation(view->fileInfoWidget, "width");
     connect(fileInfoAnimation, &QPropertyAnimation::valueChanged, [=](const QVariant& value) {
@@ -277,6 +283,7 @@ void MediaViewerDelegate::adaptiveResize() {
 
 void MediaViewerDelegate::deleteImage() {
     if (settings.value("askForDeletionPermission").toBool()) {
+        // ask before deletion
         auto* confirmDialog = new ElaContentDialog(view);
         confirmDialog->setWindowTitle("Confirm Deletion");
         auto* centralWidget = new QWidget(view);
@@ -301,7 +308,6 @@ void MediaViewerDelegate::deleteImage() {
             confirmDialog->close();
         });
         connect(confirmDialog, &ElaContentDialog::rightButtonClicked, this, [=, this]() {
-            confirmDialog->close();
             if (!QFile(filepath).remove()) {
                 ElaMessageBar::error(ElaMessageBarType::Bottom,
                                      "Delete failed!",
@@ -406,7 +412,7 @@ int MediaViewerDelegate::getScale() const {
 void MediaViewerDelegate::openInFileExplorer() {
     QFileInfo fileInfo(filepath);
     if (fileInfo.exists()) {
-        QString explorer = "explorer.exe";
+        QString explorer = "explorer.exe"; // Only for Windows
         QStringList params;
         params << "/select," << QDir::toNativeSeparators(filepath);
         QProcess::startDetached(explorer, params);

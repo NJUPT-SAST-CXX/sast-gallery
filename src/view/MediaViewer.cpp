@@ -12,6 +12,7 @@ MediaViewer::MediaViewer(QAbstractItemModel* model, int index, QWidget* parent)
     , delegate(new MediaViewerDelegate(model, index, this, this)) {
     initWindow();
     initContent();
+    delegate->init();
     delegate->initConnections();
 }
 

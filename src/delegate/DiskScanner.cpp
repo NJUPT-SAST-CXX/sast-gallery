@@ -29,7 +29,7 @@ void DiskScanner::addPath(const QString& path) {
         pendingPath.append(it.next());
     }
 
-    for (const auto& path : pendingPath) {
+    for (auto& path : pendingPath) {
         if (diskWatcher.directories().contains(path)) {
             continue;
         }

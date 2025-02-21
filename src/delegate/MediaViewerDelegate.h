@@ -17,6 +17,7 @@ public:
                                  MediaViewer* viewer,
                                  QObject* parent = nullptr);
 
+    void init();
     [[nodiscard]] auto getFilePath() const { return filepath; }
     [[nodiscard]] auto getImage() const { return this->image; }
     void initConnections();
@@ -32,6 +33,7 @@ public slots:
     bool copyImageToClipboard();
     void openImageFileDialog();
     void saveImageFileDialog();
+    void onLikeButtonClicked();
     void onFileInfoClicked();
     void adaptiveResize();
     void deleteImage();
