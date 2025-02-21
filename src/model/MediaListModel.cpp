@@ -1,10 +1,16 @@
 #include "MediaListModel.h"
 #include <QDir>
+#include <QStandardPaths>
+#include <QDataStream>
 
 MediaListModel::MediaListModel(QObject* parent)
-    : QAbstractTableModel(parent) {}
+    : QAbstractTableModel(parent) {
+    loadFavorites();
+}
 
-MediaListModel::~MediaListModel() {}
+MediaListModel::~MediaListModel() {
+    saveFavorites();
+}
 
 int MediaListModel::rowCount(const QModelIndex& parent) const {
     return path.size();
@@ -69,9 +75,11 @@ bool MediaListModel::setData(const QModelIndex& index, const QVariant& value, in
         if (value.value<bool>()) {
             isFavorite.insert(path.value(index.row()));
             dataChanged(index, index);
+            saveFavorites();  // 保存收藏状态
         } else {
             isFavorite.remove(path.value(index.row()));
             dataChanged(index, index);
+            saveFavorites();  // 保存收藏状态
         }
     }
     return false;
@@ -112,4 +120,37 @@ void MediaListModel::modifiedEntries(const QStringList& paths) {
         lastModifiedTime.replace(row, QFileInfo(filePath).lastModified());
         dataChanged(index(row, Property::LastModifiedTime), index(row, Property::LastModifiedTime));
     }
+}
+
+void MediaListModel::saveFavorites() const {
+    QFile file(getFavoritesFilePath());
+    if (!file.open(QIODevice::WriteOnly)) {
+        qWarning() << "Failed to open favorites file for writing:" << file.errorString();
+        return;
+    }
+
+    QDataStream out(&file);
+    out.setVersion(QDataStream::Qt_6_0);
+    out << isFavorite;
+}
+
+void MediaListModel::loadFavorites() {
+    QFile file(getFavoritesFilePath());
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning() << "Failed to open favorites file for reading:" << file.errorString();
+        return;
+    }
+
+    QDataStream in(&file);
+    in.setVersion(QDataStream::Qt_6_0);
+    in >> isFavorite;
+}
+
+QString MediaListModel::getFavoritesFilePath() const {
+    QString dataLocation = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir dir(dataLocation);
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+    return dir.filePath("favorites.dat");
 }

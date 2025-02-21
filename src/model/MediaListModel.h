@@ -4,8 +4,6 @@
 #include <QDateTime>
 #include <QList>
 
-// model for storing media property on disk, not including the image content
-// TODO: load & save favorite data from disk
 class MediaListModel : public QAbstractTableModel {
     Q_OBJECT
 
@@ -33,4 +31,9 @@ public slots:
     void appendEntries(const QStringList& paths);
     void removeEntries(const QStringList& paths);
     void modifiedEntries(const QStringList& paths);
+
+private:
+    void saveFavorites() const;
+    void loadFavorites();
+    QString getFavoritesFilePath() const;
 };

@@ -70,9 +70,6 @@ void MediaViewerDelegate::initConnections() {
             this,
             &MediaViewerDelegate::saveImageFileDialog);
 
-    //TODO(must): implement the openInFileExplorer functionality
-    //connect(openInFileExplorerAction,......)
-
     connect(view->rotateAction, &QAction::triggered, this, &MediaViewerDelegate::rotateImage);
 
     connect(view->deleteAction, &QAction::triggered, this, &MediaViewerDelegate::deleteImage);
