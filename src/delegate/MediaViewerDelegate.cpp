@@ -90,8 +90,29 @@ void MediaViewerDelegate::initConnections() {
     connect(view->nextAction, &QAction::triggered, this, &MediaViewerDelegate::nextImage);
 
     connect(view->likeButton, &ElaIconButton::clicked, this, [=]() {
-        //TODO(must): implement the like functionality
-        // add the image to Favorite Page
+        bool isFavorite = mediaIndex.sibling(mediaIndex.row(), MediaListModel::IsFavorite)
+                             .data()
+                             .toBool();
+        mediaListModel->setData(
+            mediaIndex.sibling(mediaIndex.row(), MediaListModel::IsFavorite),
+            !isFavorite,
+            Qt::EditRole);
+        
+        updateLikeButtonState();
+        
+        if(isFavorite) {
+            ElaMessageBar::error(ElaMessageBarType::Bottom,
+                               "Removed from favorites",
+                               nullptr,
+                               2000,
+                               view->imageViewer);
+        } else {
+            ElaMessageBar::success(ElaMessageBarType::Bottom,
+                                 "Added to favorites",
+                                 nullptr,
+                                 2000,
+                                 view->imageViewer);
+        }
     });
 
     connect(view->fileInfoButton,
@@ -159,6 +180,7 @@ void MediaViewerDelegate::onImageChanged(bool fadeAnimation) {
     view->setWindowTitle(QFileInfo(filepath).fileName());
     view->zoomSlider->setValue(view->imageViewer->getScale());
     view->fileInfoWidget->loadInfo(filepath);
+    updateLikeButtonState();
 }
 
 void MediaViewerDelegate::onWheelScrolled(int delta) {
@@ -409,5 +431,16 @@ void MediaViewerDelegate::openInFileExplorer() {
                             nullptr,
                             2000,
                             view->imageViewer);
+    }
+}
+
+void MediaViewerDelegate::updateLikeButtonState() {
+    bool isFavorite = mediaIndex.sibling(mediaIndex.row(), MediaListModel::IsFavorite)
+                         .data()
+                         .toBool();
+    if(isFavorite) {
+        view->likeButton->setIcon(QIcon(":/icons/heart-half"));
+    } else {
+        view->likeButton->setIcon(QIcon(":/icons/heart")); 
     }
 }
