@@ -42,9 +42,13 @@ private:
     QStringList searchPath;
     QFileSystemWatcher diskWatcher;
 
+    // New: cache for file modification time
+    QMap<QString, QDateTime> fileModTimeCache;
+    
     struct DiffResult {
         QStringList added;
         QStringList removed;
+        QStringList modified;  // New: add modified to diff result
     };
     // compare and signal
     static DiffResult diff(const QStringList& oldv, const QStringList& newv);
@@ -54,7 +58,7 @@ private:
     void scanPath(const QString& path, bool fullScan = false);
 
     // work with scan() and scanPath(), as scan cache
-    QStringList pendingCreated, pendingDeleted;
+    QStringList pendingCreated, pendingDeleted, pendingModified;  // New: add pendingModified
     void submitChange(bool fullScan = false);
 
     // QDir name filter

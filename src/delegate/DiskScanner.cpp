@@ -94,6 +94,10 @@ void DiskScanner::scanPath(const QString& path, bool fullScan) {
     if (!diskWatcher.directories().contains(path)) {
         // run remove
         pendingDeleted += cache.take(path);
+        // Remove modification time cache for deleted files
+        for (const auto& file : pendingDeleted) {
+            fileModTimeCache.remove(file);
+        }
         return;
     }
 
@@ -103,13 +107,28 @@ void DiskScanner::scanPath(const QString& path, bool fullScan) {
     auto&& entryInfoList = QDir(path).entryInfoList(mediaFileFilter,
                                                     QDir::Files | QDir::NoDotAndDotDot);
     for (auto& entry : entryInfoList) {
-        newCache += entry.absoluteFilePath();
+        QString filePath = entry.absoluteFilePath();
+        newCache += filePath;
+        
+        // Check for file modifications
+        QDateTime lastModified = entry.lastModified();
+        if (!fullScan && fileModTimeCache.contains(filePath)) {
+            if (fileModTimeCache[filePath] != lastModified) {
+                pendingModified += filePath;
+            }
+        }
+        fileModTimeCache[filePath] = lastModified;
     }
     cache.insert(path, newCache);
 
-    auto&& [added, removed] = diff(oldCache, newCache);
+    auto&& [added, removed, modified] = diff(oldCache, newCache);
     pendingCreated += added;
     pendingDeleted += removed;
+    
+    // Clean up modification time cache for removed files
+    for (const auto& file : removed) {
+        fileModTimeCache.remove(file);
+    }
 }
 
 void DiskScanner::submitChange(bool fullScan) {
@@ -117,15 +136,20 @@ void DiskScanner::submitChange(bool fullScan) {
         emit DiskScanner::fullScan(pendingCreated);
         pendingCreated.clear();
         pendingDeleted.clear();
+        pendingModified.clear();
         return;
     }
-    if (pendingCreated.size() != 0) {
+    if (!pendingCreated.isEmpty()) {
         emit fileCreated(pendingCreated);
         pendingCreated.clear();
     }
-    if (pendingDeleted.size() != 0) {
+    if (!pendingDeleted.isEmpty()) {
         emit fileDeleted(pendingDeleted);
         pendingDeleted.clear();
+    }
+    if (!pendingModified.isEmpty()) {
+        emit fileModified(pendingModified);
+        pendingModified.clear();
     }
 }
 
@@ -141,5 +165,6 @@ DiskScanner::DiffResult DiskScanner::diff(const QStringList& oldv, const QString
         auto res = olds - news;
         return QStringList(res.begin(), res.end());
     }();
+    res.modified.clear();  // Modified files are handled separately in scanPath
     return res;
 }
