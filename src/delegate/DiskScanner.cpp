@@ -10,22 +10,6 @@ DiskScanner::DiskScanner(QObject* parent)
         submitChange();
     });
 
-    // monitor file change
-    connect(&diskWatcher, &QFileSystemWatcher::fileChanged, [this](const QString& path) {
-        QFileInfo fileInfo(path);
-        QString dirPath = fileInfo.dir().absolutePath();
-
-        // if the file still exists, add it to the modified list
-        if (fileInfo.exists()) {
-            pendingModified.append(path);
-            // add the file to the watcher again (some systems delete the watcher after file modification)
-            if (!diskWatcher.files().contains(path)) {
-                diskWatcher.addPath(path);
-            }
-        }
-        submitChange();
-    });
-
     addPaths(QStandardPaths::standardLocations(QStandardPaths::PicturesLocation));
     addPaths(QStandardPaths::standardLocations(QStandardPaths::MoviesLocation));
 }
@@ -40,18 +24,17 @@ void DiskScanner::addPath(const QString& path) {
     QStringList pendingPath;
     pendingPath.append(path);
 
-    // recursively traverse the directory
     QDirIterator it(path, QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
     while (it.hasNext()) {
         pendingPath.append(it.next());
     }
 
-    // add paths to monitor
     for (const auto& path : pendingPath) {
         if (diskWatcher.directories().contains(path)) {
             continue;
         }
         diskWatcher.addPath(path);
+
         qInfo() << "DiskScanner: path added to disk watcher: " << path;
     }
 }
@@ -131,12 +114,6 @@ void DiskScanner::scanPath(const QString& path, bool fullScan) {
         newCache += filePath;
         newModMap.insert(filePath, entry.lastModified());
 
-        // ensure the file is monitored
-        if (!diskWatcher.files().contains(filePath)) {
-            diskWatcher.addPath(filePath);
-            qDebug() << "DiskScanner: file added to watcher during scan:" << filePath;
-        }
-
         // Check for modified files
         if (!fullScan && oldModMap.contains(filePath)) {
             if (oldModMap.value(filePath) != entry.lastModified()) {
@@ -144,20 +121,12 @@ void DiskScanner::scanPath(const QString& path, bool fullScan) {
             }
         }
     }
-
     cache.insert(path, newCache);
     modCache.insert(path, newModMap);
 
     auto&& [added, removed] = diff(oldCache, newCache);
     pendingCreated += added;
     pendingDeleted += removed;
-
-    // remove the monitor of the non-existent files
-    for (const auto& removedFile : removed) {
-        if (diskWatcher.files().contains(removedFile)) {
-            diskWatcher.removePath(removedFile);
-        }
-    }
 }
 
 void DiskScanner::submitChange(bool fullScan) {
