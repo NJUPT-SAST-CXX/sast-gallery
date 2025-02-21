@@ -5,17 +5,13 @@
 
 DiskScanner::DiskScanner(QObject* parent)
     : QObject(parent) {
-    // monitor directory change
     connect(&diskWatcher, &QFileSystemWatcher::directoryChanged, [this](const QString& path) {
-        qDebug() << "DiskScanner: Directory changed:" << path;
         scanPath(path);
         submitChange();
     });
 
     // monitor file change
     connect(&diskWatcher, &QFileSystemWatcher::fileChanged, [this](const QString& path) {
-        qDebug() << "DiskScanner: File changed:" << path;
-        // find the directory of the file
         QFileInfo fileInfo(path);
         QString dirPath = fileInfo.dir().absolutePath();
 
@@ -41,42 +37,22 @@ void DiskScanner::addPath(const QString& path) {
 
     searchPath.append(path);
 
-    QStringList pendingDirs;
-    QStringList pendingFiles;
-    pendingDirs.append(path);
+    QStringList pendingPath;
+    pendingPath.append(path);
 
     // recursively traverse the directory
-    QDirIterator it(path,
-                    QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot,
-                    QDirIterator::Subdirectories);
+    QDirIterator it(path, QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
     while (it.hasNext()) {
-        QString currentPath = it.next();
-        QFileInfo fileInfo(currentPath);
-        if (fileInfo.isDir()) {
-            pendingDirs.append(currentPath);
-        } else if (fileInfo.isFile()) {
-            QString suffix = fileInfo.suffix().toLower();
-            // only monitor media files
-            if (mediaFileFilter.contains("*." + suffix)) {
-                pendingFiles.append(currentPath);
-            }
-        }
+        pendingPath.append(it.next());
     }
 
-    // add directory monitor
-    for (const auto& dir : pendingDirs) {
-        if (!diskWatcher.directories().contains(dir)) {
-            diskWatcher.addPath(dir);
-            qDebug() << "DiskScanner: directory added to watcher:" << dir;
+    // add paths to monitor
+    for (const auto& path : pendingPath) {
+        if (diskWatcher.directories().contains(path)) {
+            continue;
         }
-    }
-
-    // add file monitor
-    for (const auto& file : pendingFiles) {
-        if (!diskWatcher.files().contains(file)) {
-            diskWatcher.addPath(file);
-            qDebug() << "DiskScanner: file added to watcher:" << file;
-        }
+        diskWatcher.addPath(path);
+        qInfo() << "DiskScanner: path added to disk watcher: " << path;
     }
 }
 
@@ -180,7 +156,6 @@ void DiskScanner::scanPath(const QString& path, bool fullScan) {
     for (const auto& removedFile : removed) {
         if (diskWatcher.files().contains(removedFile)) {
             diskWatcher.removePath(removedFile);
-            qDebug() << "DiskScanner: file removed from watcher:" << removedFile;
         }
     }
 }
@@ -193,15 +168,15 @@ void DiskScanner::submitChange(bool fullScan) {
         pendingModified.clear();
         return;
     }
-    if (!pendingCreated.isEmpty()) {
+    if (pendingCreated.size() != 0) {
         emit fileCreated(pendingCreated);
         pendingCreated.clear();
     }
-    if (!pendingDeleted.isEmpty()) {
+    if (pendingDeleted.size() != 0) {
         emit fileDeleted(pendingDeleted);
         pendingDeleted.clear();
     }
-    if (!pendingModified.isEmpty()) {
+    if (pendingModified.size() != 0) {
         emit fileModified(pendingModified);
         pendingModified.clear();
     }

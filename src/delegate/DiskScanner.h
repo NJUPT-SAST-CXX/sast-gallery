@@ -50,9 +50,9 @@ private:
     static DiffResult diff(const QStringList& oldv, const QStringList& newv);
 
     // scan specific path, path must be a subfolder of searchPath
-    QMap<QString, QStringList> cache;
+    QMap<QString, QStringList> cache; // <mediaPath, filePath(in mediaPath)> 只能记录文件的相对路径，不能用于记录文件是否被修改
     // Cache for tracking file modification times
-    QMap<QString, QMap<QString, QDateTime>> modCache;
+    QMap<QString, QMap<QString, QDateTime>> modCache; // <mediaPath, <filePath(in mediaPath), lastModifiedTime>> 记录文件是否被修改
     void scanPath(const QString& path, bool fullScan = false);
 
     // work with scan() and scanPath(), as scan cache
