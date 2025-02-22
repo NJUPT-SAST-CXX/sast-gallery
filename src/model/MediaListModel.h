@@ -12,6 +12,7 @@ class MediaListModel : public QAbstractTableModel {
     QList<QString> path;
     QList<QDateTime> lastModifiedTime;
     QSet<QString> isFavorite;
+    void writeFavToFile();
 
 public:
     MediaListModel(QObject* parent = nullptr);
@@ -25,9 +26,6 @@ public:
     bool setData(const QModelIndex& index, const QVariant& value, int role) override;
 
     enum Property { Path = 0, LastModifiedTime = 1, IsFavorite = 2 };
-
-private:
-    void writeFavToFile();
 
 public slots:
 
