@@ -34,9 +34,7 @@ void GalleryWidget::onModelDataChanged(const QModelIndex& topLeft,
     for (int row = topLeft.row(); row <= bottomRight.row(); row++) {
         for (int col = topLeft.column(); col <= bottomRight.column(); col++) {
             auto* item = mediaLayout->itemAt(row);
-
             auto data = mediaListModel->data(mediaListModel->index(row, col));
-
             switch (MediaListModel::Property(col)) {
             case MediaListModel::Path:
                 dynamic_cast<MediaPreviewer*>(item->widget())->setPath(data.value<QString>());
@@ -73,34 +71,26 @@ void GalleryWidget::onModelRowsMoved(const QModelIndex& sourceParent,
     qDebug() << "onModelRowsMoved" << sourceStart << sourceEnd << destinationRow;
     QList<QWidget*> movedList;
     for (int i = sourceStart; i <= sourceEnd; i++) {
-        auto* item = mediaLayout->takeAt(sourceStart);
-        if (!item) {
-            qWarning() << "GalleryWidget::onModelRowsMoved - No item at index" << i;
-            continue;
-        }
-        movedList += item->widget();
+        movedList += mediaLayout->takeAt(sourceStart)->widget();
     }
     mediaLayout->insertWidgets(movedList, destinationRow);
 }
 
 void GalleryWidget::onModelRowsInserted(const QModelIndex& parent, int first, int last) {
+    qDebug() << "onModelRowsInserted" << first << last;
+
     QList<QWidget*> insertList;
     for (int i = first; i <= last; i++) {
-        auto* previewer = new MediaPreviewer(mediaListModel, i);
-        insertList += previewer;
+        insertList += new MediaPreviewer(mediaListModel, i);
     }
     mediaLayout->insertWidgets(insertList, first);
 }
 
 void GalleryWidget::onModelRowsRemoved(const QModelIndex& parent, int first, int last) {
-    int i = last - first + 1;
     qDebug() << "onModelRowsRemoved" << first << last;
+    int i = last - first + 1;
     while (i-- > 0) {
         auto* item = mediaLayout->takeAt(first);
-        if (!item) {
-            qWarning() << "GalleryWidget::onModelRowsRemoved - No item at index" << first;
-            continue;
-        }
         delete item->widget();
         delete item;
     }
