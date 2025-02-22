@@ -97,12 +97,12 @@ void GalleryWidget::onModelRowsRemoved(const QModelIndex& parent, int first, int
 }
 
 void GalleryWidget::initModelSignals() {
-    // disconnect old connections
+    static std::vector<QMetaObject::Connection> connections;
+    
     for (auto& connection : connections) {
         disconnect(connection);
     }
 
-    // build new connections
     connections = {
         // clang-format off
     connect(mediaListModel, &QAbstractItemModel::dataChanged, this, &GalleryWidget::onModelDataChanged),
@@ -113,14 +113,6 @@ void GalleryWidget::initModelSignals() {
     connect(mediaListModel, &QAbstractItemModel::rowsRemoved, this, &GalleryWidget::onModelRowsRemoved),
         // clang-format on
     };
-
-    // verify connections
-    for (const auto& connection : connections) {
-        if (!connection) {
-            qWarning()
-                << "GalleryWidget::initModelSignals - Failed to establish one or more connections";
-        }
-    }
 }
 
 void GalleryWidget::resetPreviewers() {

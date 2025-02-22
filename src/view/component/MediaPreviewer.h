@@ -16,7 +16,7 @@
 class MediaPreviewer : public QLabel {
     Q_OBJECT
 public:
-    MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget* parent = nullptr);
+    explicit MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget* parent = nullptr);
     ~MediaPreviewer();
 
     // load image when show
@@ -38,18 +38,11 @@ public slots:
     void loadImageComplete();
     void loadVideoComplete();
 
-protected:
-    void enterEvent(QEnterEvent* event) override;
-    void leaveEvent(QEvent* event) override;
-    void mousePressEvent(QMouseEvent* event) override;
-    void mouseReleaseEvent(QMouseEvent* event) override;
-    void mouseDoubleClickEvent(QMouseEvent* event) override;
-
 private:
     Media media;
     QSize mediaSize;
     QPixmap originalPixmap;
-    bool requireReloadImage;
+    bool requireReloadImage = true;
     QFutureWatcher<QPixmap> imageLoadWatcher;
     QFutureWatcher<QPixmap> videoLoadWatcher;
 
@@ -59,6 +52,14 @@ private:
     QPixmap loadVideo();
     bool isVideoFile(const QString& path) const;
 
-    void scaleAnimation(qreal startScale, qreal endScale, int duration = 100);
+    void enterEvent(QEnterEvent* event) override;
+    void leaveEvent(QEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
+
+    // scale the content while keeping the geometry for layout stability
     QPixmap scalePixmapContent(qreal scaleFactor);
+
+    void scaleAnimation(qreal startScale, qreal endScale, int duration = 200);
 };

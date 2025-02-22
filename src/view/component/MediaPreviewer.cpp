@@ -15,8 +15,7 @@ MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget*
     : QLabel(parent)
     , media(model->data(model->index(rowIndex, MediaListModel::Path)).value<QString>(),
             model->data(model->index(rowIndex, MediaListModel::LastModifiedTime)).value<QDateTime>(),
-            model->data(model->index(rowIndex, MediaListModel::IsFavorite)).value<bool>())
-    , requireReloadImage(true) {
+            model->data(model->index(rowIndex, MediaListModel::IsFavorite)).value<bool>()){
     connect(&imageLoadWatcher,
             &QFutureWatcher<QPixmap*>::finished,
             this,
