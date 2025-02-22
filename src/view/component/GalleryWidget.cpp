@@ -35,21 +35,18 @@ void GalleryWidget::onModelDataChanged(const QModelIndex& topLeft,
         for (int col = topLeft.column(); col <= bottomRight.column(); col++) {
             auto* item = mediaLayout->itemAt(row);
 
-            auto index = mediaListModel->index(row, col);
-
-            auto data = mediaListModel->data(index);
-
-            auto* previewer = dynamic_cast<MediaPreviewer*>(item->widget());
+            auto data = mediaListModel->data(mediaListModel->index(row, col));
 
             switch (MediaListModel::Property(col)) {
             case MediaListModel::Path:
-                previewer->setPath(data.value<QString>());
+                dynamic_cast<MediaPreviewer*>(item->widget())->setPath(data.value<QString>());
                 break;
             case MediaListModel::LastModifiedTime:
-                previewer->setLastModifiedTime(data.value<QDateTime>());
+                dynamic_cast<MediaPreviewer*>(item->widget())
+                    ->setLastModifiedTime(data.value<QDateTime>());
                 break;
             case MediaListModel::IsFavorite:
-                previewer->setIsFavorite(data.value<bool>());
+                dynamic_cast<MediaPreviewer*>(item->widget())->setIsFavorite(data.value<bool>());
                 break;
             }
         }
@@ -57,6 +54,7 @@ void GalleryWidget::onModelDataChanged(const QModelIndex& topLeft,
 }
 
 void GalleryWidget::onModelModelReset() {
+    qDebug() << "onModelModelReset";
     resetPreviewers();
 }
 
@@ -72,6 +70,7 @@ void GalleryWidget::onModelRowsMoved(const QModelIndex& sourceParent,
                                      int sourceEnd,
                                      const QModelIndex& destinationParent,
                                      int destinationRow) {
+    qDebug() << "onModelRowsMoved" << sourceStart << sourceEnd << destinationRow;
     QList<QWidget*> movedList;
     for (int i = sourceStart; i <= sourceEnd; i++) {
         auto* item = mediaLayout->takeAt(sourceStart);
@@ -95,6 +94,7 @@ void GalleryWidget::onModelRowsInserted(const QModelIndex& parent, int first, in
 
 void GalleryWidget::onModelRowsRemoved(const QModelIndex& parent, int first, int last) {
     int i = last - first + 1;
+    qDebug() << "onModelRowsRemoved" << first << last;
     while (i-- > 0) {
         auto* item = mediaLayout->takeAt(first);
         if (!item) {
