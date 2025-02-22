@@ -105,9 +105,30 @@ void MediaViewerDelegate::initConnections() {
             this,
             &MediaViewerDelegate::nextImage); //下一张图片
 
-    connect(view->likeButton, &ElaIconButton::clicked, this, [=]() {
+    connect(view->likeButton, &ElaIconButton::clicked, this, [=, this]() {
         //TODO(must): implement the like functionality
         // add the image to Favorite Page
+        bool currentState = mediaListModel
+                                ->data(mediaListModel->index(mediaIndex.row(),
+                                                             MediaListModel::IsFavorite))
+                                .toBool();
+        mediaListModel->setData(mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite),
+                                !currentState,
+                                Qt::EditRole);
+        updateLikeButtonState();
+        if (MediaListModel::IsFavorite) {
+            ElaMessageBar::error(ElaMessageBarType::Bottom,
+                                 "Removed from favorites",
+                                 nullptr,
+                                 2000,
+                                 view->imageViewer);
+        } else {
+            ElaMessageBar::success(ElaMessageBarType::Bottom,
+                                   "Added to favorites",
+                                   nullptr,
+                                   2000,
+                                   view->imageViewer);
+        }
     }); //点赞功能
 
     connect(view->fileInfoButton,
@@ -164,6 +185,7 @@ void MediaViewerDelegate::onModelRowsToBeRemoved(const QModelIndex& parent, int 
 } //处理模型行移除函数
 
 void MediaViewerDelegate::onImageChanged(bool fadeAnimation) {
+    updateLikeButtonState();
     view->imageViewer->setContent(image, fadeAnimation); //是否使用淡入淡出动画
     view->fileInfoBriefText->setText(QString("%1 x %2 %3")
                                          .arg(QString::number(image.width()))
@@ -445,5 +467,15 @@ void MediaViewerDelegate::setFilePath(const QString& path) {
             }
         }
         loadImage(filepath);
+    }
+}
+
+void MediaViewerDelegate::updateLikeButtonState() {
+    if (view && view->likeButton) {
+        bool isFavorite = mediaListModel
+                              ->data(mediaListModel->index(mediaIndex.row(),
+                                                           MediaListModel::IsFavorite))
+                              .toBool();
+        view->likeButton->setChecked(isFavorite);
     }
 }

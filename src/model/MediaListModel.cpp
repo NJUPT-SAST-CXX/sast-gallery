@@ -1,10 +1,15 @@
 #include "MediaListModel.h"
 #include <QDir>
+#include <QStandardPaths>
 
 MediaListModel::MediaListModel(QObject* parent)
-    : QAbstractTableModel(parent) {}
+    : QAbstractTableModel(parent) {
+    loadFavorites();
+}
 
-MediaListModel::~MediaListModel() = default;
+MediaListModel::~MediaListModel() {
+    saveFavorites();
+}
 
 int MediaListModel::rowCount(const QModelIndex& parent) const {
     return path.size();
@@ -73,6 +78,8 @@ bool MediaListModel::setData(const QModelIndex& index, const QVariant& value, in
             isFavorite.remove(path.value(index.row())); //移除路径
             dataChanged(index, index);
         }
+        saveFavorites(); // 保存收藏状态
+        return true;
     }
     return false;
 } //设置数据
@@ -114,3 +121,35 @@ void MediaListModel::modifiedEntries(const QStringList& paths) {
                     index(row, Property::LastModifiedTime)); //发送信号
     }
 } //修改条目
+
+void MediaListModel::saveFavorites() {
+    QString filePath = getFavoritesFilePath();
+
+    QFile file(filePath);
+
+    qDebug() << "Saving favorites to:" << filePath;
+    if (!file.open(QIODevice::WriteOnly)) {
+        qWarning() << "Failed to open favorites file for writing:" << file.errorString();
+        qDebug() << "File exists:" << QFile::exists(filePath);
+        qDebug() << "File permissions:" << file.permissions();
+        return;
+    }
+
+    QDataStream out(&file);
+    out << isFavorite;
+    file.close();
+}
+
+void MediaListModel::loadFavorites() {
+    QFile file(getFavoritesFilePath());
+    if (file.open(QIODevice::ReadOnly)) {
+        QDataStream in(&file);
+        in >> isFavorite;
+        file.close();
+    }
+}
+QString MediaListModel::getFavoritesFilePath() {
+    QString dataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir().mkpath(dataDir);
+    return dataDir + "/favorites.dat";
+}

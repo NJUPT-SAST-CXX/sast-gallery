@@ -6,11 +6,11 @@
 
 ## 必做
 
-- [ ] 完善设置
-- [✔️] 双击图片弹出 MediaViewer
-- [✔️] 在 MediaViewerDelegate 和 MediaViewer 中实现在资源管理器里展现当前图片
-- [✔️] 实现 DiskScanner 检测文件修改的功能
-- [ ] 实现照片“Favorite”功能 & Favorite 数据持久化
+- [x] 完善设置
+- [x] 双击图片弹出 MediaViewer
+- [x] 在 MediaViewerDelegate 和 MediaViewer 中实现在资源管理器里展现当前图片
+- [x] 实现 DiskScanner 检测文件修改的功能
+- [x] 实现照片“Favorite”功能 & Favorite 数据持久化
 
 ## 选做
 

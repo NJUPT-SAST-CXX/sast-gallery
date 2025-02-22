@@ -1,5 +1,6 @@
 #pragma once
 
+#include "view/FavoritePage.h"
 #include <QAbstractItemModel>
 #include <QImage>
 #include <QPersistentModelIndex>
@@ -21,6 +22,7 @@ public:
     [[nodiscard]] auto getImage() const { return this->image; }
     void initConnections();
     void setFilePath(const QString& path);
+    void updateLikeButtonState();
 
 signals:
     void scaledByWheel();

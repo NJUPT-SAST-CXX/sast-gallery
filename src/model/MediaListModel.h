@@ -33,4 +33,9 @@ public slots:
     void appendEntries(const QStringList& paths);
     void removeEntries(const QStringList& paths);
     void modifiedEntries(const QStringList& paths);
+
+private:
+    void loadFavorites();
+    void saveFavorites();
+    QString getFavoritesFilePath();
 };
