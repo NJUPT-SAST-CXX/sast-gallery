@@ -108,9 +108,9 @@ SettingPage::SettingPage(QWidget* parent)
     auto deletionSwitchArea = createScrollPageArea("Ask for deletion permission",
                                                    deletionSwitchButton);
     connect(deletionSwitchButton, &ElaToggleSwitch::toggled, this, [=](bool checked) {
-        settings.setValue("askForDeletionPermission", checked);
+        settings.setValue("confirmDeletion", checked);
     });
-    deletionSwitchButton->setIsToggled(settings.value("askForDeletionPermission").toBool());
+    deletionSwitchButton->setIsToggled(settings.value("confirmDeletion").toBool());
 
     auto centralWidget = new QWidget(this);
     centralWidget->setWindowTitle("Setting");

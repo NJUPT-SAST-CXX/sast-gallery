@@ -33,9 +33,7 @@ MediaViewerDelegate::MediaViewerDelegate(QAbstractItemModel* model,
 }
 
 void MediaViewerDelegate::init() {
-    if (view && view->likeButton) {
-        updateLikeButtonState();
-    }
+    updateLikeButtonState();
 }
 
 void MediaViewerDelegate::initConnections() {
@@ -282,7 +280,7 @@ void MediaViewerDelegate::adaptiveResize() {
 }
 
 void MediaViewerDelegate::deleteImage() {
-    if (settings.value("askForDeletionPermission").toBool()) {
+    if (settings.value("confirmDeletion").toBool()) {
         // ask before deletion
         auto* confirmDialog = new ElaContentDialog(view);
         confirmDialog->setWindowTitle("Confirm Deletion");

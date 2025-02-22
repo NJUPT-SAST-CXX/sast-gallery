@@ -17,9 +17,9 @@ public:
                                  MediaViewer* viewer,
                                  QObject* parent = nullptr);
 
-    void init();
     [[nodiscard]] auto getFilePath() const { return filepath; }
     [[nodiscard]] auto getImage() const { return this->image; }
+    void init();
     void initConnections();
 
 signals:
