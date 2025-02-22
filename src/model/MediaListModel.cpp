@@ -90,7 +90,7 @@ void MediaListModel::resetEntries(const QStringList& paths) {
 
 void MediaListModel::appendEntries(const QStringList& paths) {
     beginInsertRows({}, path.size(), path.size() + paths.size() - 1);
-    auto row=path.size();
+    auto row = path.size();
     path += paths;
     for (auto& filePath : paths) {
         lastModifiedTime += QFileInfo(filePath).lastModified();
@@ -113,20 +113,21 @@ void MediaListModel::modifiedEntries(const QStringList& paths) {
     for (auto& filePath : paths) {
         auto row = path.indexOf(filePath);
         lastModifiedTime.replace(row, QFileInfo(filePath).lastModified());
-        emit dataChanged(index(row, Property::LastModifiedTime), index(row, Property::LastModifiedTime));
+        emit dataChanged(index(row, Property::LastModifiedTime),
+                         index(row, Property::LastModifiedTime));
     }
 }
 
 //
-QList<QString>& MediaListModel::getPath(){
+QList<QString>& MediaListModel::getPath() {
     return path;
 }
 
-void MediaListModel::saveFavourite(){
+void MediaListModel::saveFavourite() {
     QFile file("favourite.data");
-    if(file.open(QIODevice::WriteOnly)){
+    if (file.open(QIODevice::WriteOnly)) {
         QDataStream out(&file);
-        out<<isFavorite;
+        out << isFavorite;
         file.close();
     }
 }

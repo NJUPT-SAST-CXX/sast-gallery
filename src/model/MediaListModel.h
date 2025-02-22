@@ -13,8 +13,6 @@ class MediaListModel : public QAbstractTableModel {
     QList<QDateTime> lastModifiedTime;
     QSet<QString> isFavorite;
 
-
-
 public:
     MediaListModel(QObject* parent = nullptr);
     ~MediaListModel();

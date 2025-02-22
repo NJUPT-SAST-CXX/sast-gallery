@@ -1,11 +1,11 @@
 #include "MediaViewer.h"
+#include "../model/MediaListModel.h"
 #include <ElaMenu.h>
 #include <ElaMenuBar.h>
 #include <ElaToolTip.h>
 #include <QFileInfo>
 #include <delegate/MediaViewerDelegate.h>
 #include <utils/Tools.h>
-#include "../model/MediaListModel.h"
 
 MediaViewer::MediaViewer(QAbstractItemModel* model, int index, QWidget* parent)
     : ElaWidget(parent)
@@ -14,10 +14,10 @@ MediaViewer::MediaViewer(QAbstractItemModel* model, int index, QWidget* parent)
     initContent();
     delegate->initConnections();
     //
-    if(!model->data(model->index(index, MediaListModel::IsFavorite)).toBool()){
+    if (!model->data(model->index(index, MediaListModel::IsFavorite)).toBool()) {
         likeButton->setAwesome(ElaIconType::Heart);
-    }
-    else likeButton->setAwesome(ElaIconType::HeartCirclePlus);
+    } else
+        likeButton->setAwesome(ElaIconType::HeartCirclePlus);
 }
 
 MediaViewer::~MediaViewer() {}

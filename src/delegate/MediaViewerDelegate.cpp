@@ -10,12 +10,12 @@
 #include <QImageReader>
 #include <QPaintDevice>
 #include <QScreen>
+#include <QSortFilterProxyModel>
 #include <QtConcurrent>
 #include <model/MediaListModel.h>
 #include <utils/Settings.hpp>
 #include <utils/Tools.h>
 #include <view/MediaViewer.h>
-#include <QSortFilterProxyModel>
 
 MediaViewerDelegate::MediaViewerDelegate(QAbstractItemModel* model,
                                          int index,
@@ -69,11 +69,9 @@ void MediaViewerDelegate::initConnections() {
             &MediaViewerDelegate::saveImageFileDialog);
 
     //TODO(must): implement the openInFileExplorer functionality
-    connect(view->openInFileExplorerAction,
-            &QAction::triggered,
-            this, [this]() {
-                QString nativePath = QDir::toNativeSeparators(filepath);
-                QProcess::startDetached("explorer.exe", QStringList() << "/select," + nativePath);
+    connect(view->openInFileExplorerAction, &QAction::triggered, this, [this]() {
+        QString nativePath = QDir::toNativeSeparators(filepath);
+        QProcess::startDetached("explorer.exe", QStringList() << "/select," + nativePath);
     });
 
     connect(view->rotateAction, &QAction::triggered, this, &MediaViewerDelegate::rotateImage);
@@ -95,17 +93,18 @@ void MediaViewerDelegate::initConnections() {
     connect(view->likeButton, &ElaIconButton::clicked, this, [=, this]() {
         //TODO(must): implement the like functionality
         // add the image to Favorite Page
-        auto path=getFilePath();
-        auto id=mediaListModel->index(mediaIndex.row(),MediaListModel::IsFavorite);
-        mediaListModel->setData(id,!mediaListModel->data(id).toBool());
-        if(!mediaListModel->data(mediaListModel->index(mediaIndex.row(),MediaListModel::IsFavorite)).toBool()){
+        auto path = getFilePath();
+        auto id = mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite);
+        mediaListModel->setData(id, !mediaListModel->data(id).toBool());
+        if (!mediaListModel
+                 ->data(mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite))
+                 .toBool()) {
             view->likeButton->setAwesome(ElaIconType::Heart);
-        }
-        else view->likeButton->setAwesome(ElaIconType::HeartCirclePlus);
+        } else
+            view->likeButton->setAwesome(ElaIconType::HeartCirclePlus);
 
-        auto m=static_cast<QSortFilterProxyModel*>(mediaListModel)->sourceModel();
+        auto m = static_cast<QSortFilterProxyModel*>(mediaListModel)->sourceModel();
         static_cast<MediaListModel*>(m)->saveFavourite();
-
     });
 
     connect(view->fileInfoButton,
@@ -343,11 +342,11 @@ void MediaViewerDelegate::prevImage() {
     filepath = mediaIndex.data().value<QString>();
     loadImage(filepath);
     //
-    if(!mediaListModel->data(mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite)).toBool()){
+    if (!mediaListModel->data(mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite))
+             .toBool()) {
         view->likeButton->setAwesome(ElaIconType::Heart);
-    }
-    else view->likeButton->setAwesome(ElaIconType::HeartCirclePlus);
-
+    } else
+        view->likeButton->setAwesome(ElaIconType::HeartCirclePlus);
 }
 
 void MediaViewerDelegate::nextImage() {
@@ -359,11 +358,11 @@ void MediaViewerDelegate::nextImage() {
     filepath = mediaIndex.data().value<QString>();
     loadImage(filepath);
     //
-    if(!mediaListModel->data(mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite)).toBool()){
+    if (!mediaListModel->data(mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite))
+             .toBool()) {
         view->likeButton->setAwesome(ElaIconType::Heart);
-    }
-    else view->likeButton->setAwesome(ElaIconType::HeartCirclePlus);
-
+    } else
+        view->likeButton->setAwesome(ElaIconType::HeartCirclePlus);
 }
 
 void MediaViewerDelegate::rotateImage() {

@@ -35,7 +35,6 @@ public slots:
     void onModelRowsInserted(const QModelIndex& parent, int first, int last);
     void onModelRowsRemoved(const QModelIndex& parent, int first, int last);
 
-
 private:
     void initModelSignals();
     void resetPreviewers();

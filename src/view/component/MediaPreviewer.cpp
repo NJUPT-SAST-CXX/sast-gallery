@@ -1,12 +1,12 @@
 #include "MediaPreviewer.h"
+#include "../MediaViewer.h"
 #include <QImageReader>
 #include <QPainter>
-#include <QPixmap>
 #include <QPainterPath>
+#include <QPixmap>
 #include <QPropertyAnimation>
 #include <QtConcurrentRun>
 #include <model/MediaListModel.h>
-#include "../MediaViewer.h"
 
 MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget* parent)
     : QLabel(parent) {
@@ -22,12 +22,9 @@ MediaPreviewer::MediaPreviewer(QAbstractItemModel* model, int rowIndex, QWidget*
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     initMedia();
     // TODO: open the image in a MediaViewer window when double clicked
-    _index=rowIndex;
-    _model=model;
-    connect(this,
-            &MediaPreviewer::doubleClicked,
-            this,
-            &MediaPreviewer::on_doubleClicked);
+    _index = rowIndex;
+    _model = model;
+    connect(this, &MediaPreviewer::doubleClicked, this, &MediaPreviewer::on_doubleClicked);
 }
 
 MediaPreviewer::~MediaPreviewer() {}
@@ -40,7 +37,7 @@ void MediaPreviewer::paintEvent(QPaintEvent* event) {
     }
     //?
     QPainter painter(this);
-    painter.drawPixmap(rect(),QPixmap(filepath));
+    painter.drawPixmap(rect(), QPixmap(filepath));
 }
 
 QSize MediaPreviewer::sizeHint() const {
@@ -158,7 +155,7 @@ void MediaPreviewer::scaleAnimation(qreal startScale, qreal endScale, int durati
     animation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 //
-void MediaPreviewer::on_doubleClicked(){
-    MediaViewer *viewer=new MediaViewer(_model,_index);
+void MediaPreviewer::on_doubleClicked() {
+    MediaViewer* viewer = new MediaViewer(_model, _index);
     viewer->show();
 }

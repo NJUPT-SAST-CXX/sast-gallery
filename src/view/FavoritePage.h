@@ -7,6 +7,6 @@
 class FavoritePage : public BasePage {
     Q_OBJECT
 public:
-    explicit FavoritePage(QAbstractItemModel* model,  QWidget* parent = nullptr);
+    explicit FavoritePage(QAbstractItemModel* model, QWidget* parent = nullptr);
     ~FavoritePage();
 };

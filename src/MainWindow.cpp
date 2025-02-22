@@ -66,19 +66,20 @@ void MainWindow::initModel() {
     // clang-format on
 
     diskScanner->scan();
-
 }
 //
-void MainWindow::loadFavourite(){
+void MainWindow::loadFavourite() {
     QFile file("favourite.data");
-    if(file.open(QIODevice::ReadOnly)){
+    if (file.open(QIODevice::ReadOnly)) {
         QSet<QString> favourite;
         QDataStream in(&file);
-        in>>favourite;
-        for(auto p:favourite){
-            if(mediaModel->getPath().contains(p)){
-                auto row=mediaModel->getPath().indexOf(p);
-                mediaModel->setData(mediaModel->index(row,MediaListModel::IsFavorite),p,Qt::EditRole);
+        in >> favourite;
+        for (auto p : favourite) {
+            if (mediaModel->getPath().contains(p)) {
+                auto row = mediaModel->getPath().indexOf(p);
+                mediaModel->setData(mediaModel->index(row, MediaListModel::IsFavorite),
+                                    p,
+                                    Qt::EditRole);
             }
         }
         file.close();
