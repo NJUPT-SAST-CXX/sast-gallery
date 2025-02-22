@@ -97,8 +97,8 @@ void GalleryWidget::onModelRowsRemoved(const QModelIndex& parent, int first, int
 }
 
 void GalleryWidget::initModelSignals() {
-    static std::vector<QMetaObject::Connection> connections;
-    
+    static std::array<QMetaObject::Connection, 6> connections;
+
     for (auto& connection : connections) {
         disconnect(connection);
     }

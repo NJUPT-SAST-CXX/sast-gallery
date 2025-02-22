@@ -41,16 +41,16 @@ public slots:
 private:
     Media media;
     QSize mediaSize;
-    QPixmap originalPixmap;
     bool requireReloadImage = true;
     QFutureWatcher<QPixmap> imageLoadWatcher;
     QFutureWatcher<QPixmap> videoLoadWatcher;
+
+    QPixmap originalPixmap;
 
     void initMedia();
     static QPixmap roundedPixmap(const QPixmap& original, double radius);
     QPixmap loadImage();
     QPixmap loadVideo();
-    bool isVideoFile(const QString& path) const;
 
     void enterEvent(QEnterEvent* event) override;
     void leaveEvent(QEvent* event) override;
