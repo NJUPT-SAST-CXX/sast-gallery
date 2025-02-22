@@ -5,6 +5,7 @@
 #include <ElaToolTip.h>
 #include <QFileInfo>
 #include <delegate/MediaViewerDelegate.h>
+#include <model/Media.h>
 #include <utils/Tools.h>
 
 MediaViewer::MediaViewer(QAbstractItemModel* model, int index, QWidget* parent)
@@ -56,17 +57,14 @@ void MediaViewer::initContent() {
     menuBar->setMaximumHeight(25);
     fileMenu->setMinimumWidth(50);
 
-    // Create appropriate viewer based on file type
+    // media viewer
     QString filePath = delegate->getFilePath();
-    QString extension = QFileInfo(filePath).suffix().toLower();
+    Media media(filePath);
 
-    // TODO: add more video formats
-    if (extension == "mp4" || extension == "avi" || extension == "mov" || extension == "wmv") {
-        videoViewer = new VideoViewer(filePath, this);
-        contentWidget = videoViewer;
-    } else {
-        imageViewer = new ImageViewer(QPixmap::fromImage(delegate->getImage()), this);
-        contentWidget = imageViewer;
+    if (media.type == MediaType::Video) {
+        contentWidget = new VideoViewer(filePath, this);
+    } else if (media.type == MediaType::Image) {
+        contentWidget = new ImageViewer(filePath, this);
     }
 
     // file info widget
@@ -74,7 +72,7 @@ void MediaViewer::initContent() {
     fileInfoWidget->loadInfo(delegate->getFilePath());
     fileInfoWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     fileInfoWidget->setFixedWidth(0);
-    fileInfoWidget->setMessageBarParent(imageViewer);
+    fileInfoWidget->setMessageBarParent(contentWidget);
     fileInfoWidget->hide();
 
     // Create buttons

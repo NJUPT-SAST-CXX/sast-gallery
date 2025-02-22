@@ -3,9 +3,9 @@
 #include "model/MediaListModel.h"
 
 GalleryWidget::GalleryWidget(QAbstractItemModel* model, QWidget* parent)
-    : QWidget(parent)
-    , mediaListModel(model)
-    , mediaLayout(new MediaFlexLayout{this}) {
+    : mediaListModel(model)
+    , mediaLayout(new MediaFlexLayout{this})
+    , QWidget(parent) {
     initModelSignals();
     resetPreviewers();
     setSizePolicy(QSizePolicy::Policy::Ignored, sizePolicy().verticalPolicy());
@@ -30,6 +30,7 @@ QLayout* GalleryWidget::layout(QLayout* layout) {
 void GalleryWidget::onModelDataChanged(const QModelIndex& topLeft,
                                        const QModelIndex& bottomRight,
                                        const QList<int>& roles) {
+    qDebug() << "onModelDataChanged\t" << topLeft << bottomRight;
     for (int row = topLeft.row(); row <= bottomRight.row(); row++) {
         for (int col = topLeft.column(); col <= bottomRight.column(); col++) {
             auto* item = mediaLayout->itemAt(row);
@@ -114,12 +115,12 @@ void GalleryWidget::initModelSignals() {
     // build new connections
     connections = {
         // clang-format off
-        connect(mediaListModel, &QAbstractItemModel::dataChanged, this, &GalleryWidget::onModelDataChanged),
-        connect(mediaListModel, &QAbstractItemModel::modelReset, this, &GalleryWidget::onModelModelReset),
-        connect(mediaListModel, &QAbstractItemModel::layoutChanged, this, &GalleryWidget::onModelLayoutChanged),
-        connect(mediaListModel, &QAbstractItemModel::rowsMoved, this, &GalleryWidget::onModelRowsMoved),
-        connect(mediaListModel, &QAbstractItemModel::rowsInserted, this, &GalleryWidget::onModelRowsInserted),
-        connect(mediaListModel, &QAbstractItemModel::rowsRemoved, this, &GalleryWidget::onModelRowsRemoved),
+    connect(mediaListModel, &QAbstractItemModel::dataChanged, this, &GalleryWidget::onModelDataChanged),
+    connect(mediaListModel, &QAbstractItemModel::modelReset, this, &GalleryWidget::onModelModelReset),
+    connect(mediaListModel, &QAbstractItemModel::layoutChanged, this, &GalleryWidget::onModelLayoutChanged),
+    connect(mediaListModel, &QAbstractItemModel::rowsMoved, this, &GalleryWidget::onModelRowsMoved),
+    connect(mediaListModel, &QAbstractItemModel::rowsInserted, this, &GalleryWidget::onModelRowsInserted),
+    connect(mediaListModel, &QAbstractItemModel::rowsRemoved, this, &GalleryWidget::onModelRowsRemoved),
         // clang-format on
     };
 

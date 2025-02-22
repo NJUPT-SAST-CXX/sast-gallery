@@ -35,6 +35,6 @@ public slots:
     void modifiedEntries(const QStringList& paths);
 
 private:
-    void loadFavorites(); // load favorite data from file
-    void saveFavorites(); // save favorite data to file
+    void loadFavorites();
+    void saveFavorites();
 };

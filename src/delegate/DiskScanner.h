@@ -28,6 +28,35 @@ public:
     // manually triggered scan, will trigger signal fullScan if(fullScan)
     void scan(bool fullScan = false);
 
+    // QDir name filter
+    static const inline QStringList imageFileFilter
+        = {// image, ref: https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types
+           "*.apng",
+           "*.png",
+           "*.avif",
+           "*.gif",
+           "*.jpg",
+           "*.jpeg",
+           "*.jfif",
+           "*.pjpeg",
+           "*.pjp",
+           "*.svg",
+           "*.webp",
+           "*.bmp",
+           "*.ico",
+           "*.cur",
+           "*.tif",
+           "*.tiff"};
+
+    static const inline QStringList videoFileFilter = {
+        // video, ref: https://en.wikipedia.org/wiki/Video_file_format
+        "*.webm", "*.mkv", "*.flv", "*.flv",  "*.vob", "*.ogv", "*.ogg", "*.drc", "*.gif", "*.gifv",
+        "*.mng",  "*.avi", "*.MTS", "*.M2TS", "*.TS",  "*.mov", "*.qt",  "*.wmv", "*.yuv", "*.rm",
+        "*.rmvb", "*.viv", "*.asf", "*.amv",  "*.mp4", "*.m4p", "*.m4v", "*.mpg", "*.mp2", "*.mpeg",
+        "*.mpe",  "*.mpv", "*.mpg", "*.mpeg", "*.m2v", "*.m4v", "*.svi", "*.3gp", "*.3g2", "*.mxf",
+        "*.roq",  "*.nsv", "*.flv", "*.f4v",  "*.f4p", "*.f4a", "*.f4b",
+    };
+
 signals:
 
     // supposed to replace all data in model
@@ -50,83 +79,16 @@ private:
     static DiffResult diff(const QStringList& oldv, const QStringList& newv);
 
     // scan specific path, path must be a subfolder of searchPath
-    QMap<QString, QStringList> cache; // <mediaPath, filePath(in mediaPath)> 只能记录文件的相对路径，不能用于记录文件是否被修改
+    // <mediaPath, filePath(in mediaPath)> 只能记录文件的相对路径，不能用于记录文件是否被修改
+    QMap<QString, QStringList> cache;
     // Cache for tracking file modification times
-    QMap<QString, QMap<QString, QDateTime>> modCache; // <mediaPath, <filePath(in mediaPath), lastModifiedTime>> 记录文件是否被修改
+    // <mediaPath, <filePath(in mediaPath), lastModifiedTime>> 记录文件是否被修改
+    QMap<QString, QMap<QString, QDateTime>> modCache;
     void scanPath(const QString& path, bool fullScan = false);
 
     // work with scan() and scanPath(), as scan cache
     QStringList pendingCreated, pendingDeleted, pendingModified;
     void submitChange(bool fullScan = false);
 
-    // QDir name filter
-    static const inline QStringList mediaFileFilter = {
-        // image, ref: https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types
-        "*.apng",
-        "*.png",
-        "*.avif",
-        "*.gif",
-        "*.jpg",
-        "*.jpeg",
-        "*.jfif",
-        "*.pjpeg",
-        "*.pjp",
-        "*.png",
-        "*.svg",
-        "*.webp",
-        "*.bmp",
-        "*.ico",
-        "*.cur",
-        "*.tif",
-        "*.tiff",
-
-        // video, ref: https://en.wikipedia.org/wiki/Video_file_format
-        "*.webm",
-        "*.mkv",
-        "*.flv",
-        "*.flv",
-        "*.vob",
-        "*.ogv",
-        "*.ogg",
-        "*.drc",
-        "*.gif",
-        "*.gifv",
-        "*.mng",
-        "*.avi",
-        "*.MTS",
-        "*.M2TS",
-        "*.TS",
-        "*.mov",
-        "*.qt",
-        "*.wmv",
-        "*.yuv",
-        "*.rm",
-        "*.rmvb",
-        "*.viv",
-        "*.asf",
-        "*.amv",
-        "*.mp4",
-        "*.m4p",
-        "*.m4v",
-        "*.mpg",
-        "*.mp2",
-        "*.mpeg",
-        "*.mpe",
-        "*.mpv",
-        "*.mpg",
-        "*.mpeg",
-        "*.m2v",
-        "*.m4v",
-        "*.svi",
-        "*.3gp",
-        "*.3g2",
-        "*.mxf",
-        "*.roq",
-        "*.nsv",
-        "*.flv",
-        "*.f4v",
-        "*.f4p",
-        "*.f4a",
-        "*.f4b",
-    };
+    static const inline QStringList mediaFileFilter = imageFileFilter + videoFileFilter;
 };

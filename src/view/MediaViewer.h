@@ -18,7 +18,7 @@ class MediaViewer : public ElaWidget {
 
 public:
     explicit MediaViewer(QAbstractItemModel* model, int index, QWidget* parent = nullptr);
-    ~MediaViewer() override;
+    ~MediaViewer();
     QSlider* getZoomSlider() const { return zoomSlider; }
     void initWindow();
     void initContent();
@@ -43,11 +43,10 @@ private:
     ElaIconButton* maximizeButton{};
     ElaIconButton* zoom2originalButton{};
     ElaText* fileInfoBriefText{};
-    MediaViewerDelegate* delegate{};
-
-    // Content widgets
     QWidget* contentWidget{nullptr}; // Points to either imageViewer or videoViewer
-    ImageViewer* imageViewer{nullptr};
-    VideoViewer* videoViewer{nullptr};
+    ImageViewer* imageViewer;
+    VideoViewer* videoViewer;
     FileInfoWidget* fileInfoWidget{};
+
+    MediaViewerDelegate* delegate{};
 };

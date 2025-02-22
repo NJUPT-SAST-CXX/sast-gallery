@@ -83,13 +83,12 @@ bool MediaListModel::setData(const QModelIndex& index, const QVariant& value, in
         if (value.value<bool>()) {
             isFavorite.insert(path.value(index.row()));
             dataChanged(index, index);
-            saveFavorites(); // save the changes
+            saveFavorites();
         } else {
             isFavorite.remove(path.value(index.row()));
             dataChanged(index, index);
-            saveFavorites(); // save the changes
+            saveFavorites();
         }
-        return true; // return true to indicate the data has been changed successfully
     }
     return false;
 }
@@ -124,29 +123,10 @@ void MediaListModel::removeEntries(const QStringList& paths) {
 }
 
 void MediaListModel::modifiedEntries(const QStringList& paths) {
-    qDebug() << "MediaListModel::modifiedEntries - Updating" << paths.size() << "files";
-
     for (auto& filePath : paths) {
         auto row = path.indexOf(filePath);
-        if (row == -1) {
-            qWarning() << "MediaListModel::modifiedEntries - File not found:" << filePath;
-            continue;
-        }
-
-        QFileInfo fileInfo(filePath);
-        if (!fileInfo.exists()) {
-            qWarning() << "MediaListModel::modifiedEntries - File no longer exists:" << filePath;
-            continue;
-        }
-
-        lastModifiedTime.replace(row, fileInfo.lastModified());
-        // 发出所有相关列的变化信号
-        emit dataChanged(index(row, Property::Path),
-                         index(row, Property::LastModifiedTime),
-                         {Qt::DisplayRole, Qt::EditRole});
-
-        qDebug() << "MediaListModel::modifiedEntries - Updated row" << row
-                 << "with new modification time:" << fileInfo.lastModified();
+        lastModifiedTime.replace(row, QFileInfo(filePath).lastModified());
+        dataChanged(index(row, Property::LastModifiedTime), index(row, Property::LastModifiedTime));
     }
 }
 

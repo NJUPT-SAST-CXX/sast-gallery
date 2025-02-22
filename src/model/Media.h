@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../delegate/DiskScanner.h"
 #include <QCryptographicHash>
 #include <QDateTime>
 #include <QDir>
@@ -56,16 +57,21 @@ public:
         return MediaType::Unknown;
     }
 
-    // TODO
     static bool isVideoExtension(const QString& extension) {
-        static const QStringList videoExtensions
-            = {"mp4", "avi", "mov", "wmv", "mkv", "webm", "flv", "m4v"};
-        return videoExtensions.contains(extension);
+        for (const QString& pattern : DiskScanner::videoFileFilter) {
+            if (pattern.mid(2) == extension) {
+                return true;
+            }
+        }
+        return false;
     }
 
     static bool isImageExtension(const QString& extension) {
-        static const QStringList imageExtensions
-            = {"jpg", "jpeg", "png", "gif", "bmp", "webp", "tiff"};
-        return imageExtensions.contains(extension);
+        for (const QString& pattern : DiskScanner::imageFileFilter) {
+            if (pattern.mid(2) == extension) {
+                return true;
+            }
+        }
+        return false;
     }
 };
