@@ -66,3 +66,4 @@ install
 
 # language server protocol
 .clangd.DS_Store
+.DS_Store
