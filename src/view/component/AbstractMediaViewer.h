@@ -41,4 +41,4 @@ private:
     int maxScale;
 
     void adjustMediaToFit();
-}; 
+};
