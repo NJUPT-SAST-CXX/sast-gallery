@@ -61,6 +61,7 @@ void VideoViewer::initializePlayer() {
     m_videoWidget = new QVideoWidget(this);
     m_mediaPlayer->setVideoOutput(m_videoWidget);
     m_mediaPlayer->setSource(QUrl::fromLocalFile(m_filePath));
+    m_mediaPlayer->play();
 }
 
 void VideoViewer::initializeUI() {
