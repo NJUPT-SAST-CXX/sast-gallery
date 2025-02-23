@@ -1,13 +1,17 @@
 #include "AbstractMediaViewer.h"
+#include <QGraphicsOpacityEffect>
+#include <QPropertyAnimation>
 
 AbstractMediaViewer::AbstractMediaViewer(QWidget* parent)
     : QGraphicsView(parent)
     , scene(new QGraphicsScene(this))
+    , pixmapItem(new QGraphicsPixmapItem())
     , dragging(false)
     , cntScale(100)
     , minScale(1)
     , maxScale(800) {
     setScene(scene);
+    scene->addItem(pixmapItem);
     setRenderHint(QPainter::Antialiasing);
     setRenderHint(QPainter::SmoothPixmapTransform);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -18,6 +22,36 @@ AbstractMediaViewer::AbstractMediaViewer(QWidget* parent)
     setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     setStyleSheet("background-color: transparent;");
     setFrameShape(QFrame::NoFrame);
+}
+
+AbstractMediaViewer::AbstractMediaViewer(const QPixmap& pixmap, QWidget* parent)
+    : AbstractMediaViewer(parent) {
+    setContent(pixmap);
+}
+
+void AbstractMediaViewer::setContent(const QPixmap& pixmap, bool fadeAnimation) {
+    if (pixmapItem->pixmap().isNull() || !fadeAnimation) {
+        pixmapItem->setPixmap(pixmap);
+        adjustMediaToFit();
+        return;
+    }
+
+    QGraphicsOpacityEffect* opacityEffect = new QGraphicsOpacityEffect(this);
+    pixmapItem->setGraphicsEffect(opacityEffect);
+
+    QPropertyAnimation* animation = new QPropertyAnimation(opacityEffect, "opacity");
+    animation->setDuration(250);
+    animation->setStartValue(0.0);
+    animation->setEndValue(1.0);
+
+    pixmapItem->setPixmap(pixmap);
+    adjustMediaToFit();
+    animation->start(QPropertyAnimation::DeleteWhenStopped);
+    cntScale = 100;
+}
+
+void AbstractMediaViewer::setContent(const QImage& image, bool fadeAnimation) {
+    setContent(QPixmap::fromImage(image), fadeAnimation);
 }
 
 int AbstractMediaViewer::getScale() const {
@@ -88,7 +122,7 @@ void AbstractMediaViewer::resizeEvent(QResizeEvent* event) {
     QGraphicsView::resizeEvent(event);
     auto viewCenter = mapToScene(viewport()->rect().center());
     int cntScalePercent = cntScale;
-    adjustContentToFit();
+    adjustMediaToFit();
     centerOn(viewCenter);
     cntScale = 100;
     scaleTo(cntScalePercent);
@@ -97,4 +131,11 @@ void AbstractMediaViewer::resizeEvent(QResizeEvent* event) {
 void AbstractMediaViewer::wheelEvent(QWheelEvent* event) {
     emit wheelScrolled(event->angleDelta().y());
     event->accept();
+}
+
+void AbstractMediaViewer::adjustMediaToFit() {
+    if (!pixmapItem->pixmap().isNull()) {
+        setSceneRect(pixmapItem->pixmap().rect());
+        fitInView(pixmapItem, Qt::KeepAspectRatio);
+    }
 }

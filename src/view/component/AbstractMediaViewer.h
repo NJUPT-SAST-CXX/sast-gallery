@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QGraphicsPixmapItem>
 #include <QGraphicsView>
 #include <QMouseEvent>
 
@@ -8,7 +9,9 @@ class AbstractMediaViewer : public QGraphicsView {
 
 public:
     explicit AbstractMediaViewer(QWidget* parent = nullptr);
-    virtual ~AbstractMediaViewer() = default;
+    explicit AbstractMediaViewer(const QPixmap& pixmap, QWidget* parent = nullptr);
+    void setContent(const QPixmap& pixmap, bool fadeAnimation = true);
+    void setContent(const QImage& image, bool fadeAnimation = true);
 
     [[nodiscard]] int getScale() const;
     [[nodiscard]] int getMinScale() const;
@@ -28,12 +31,14 @@ protected:
     void resizeEvent(QResizeEvent* event) override;
     void wheelEvent(QWheelEvent* event) override;
 
+private:
     QGraphicsScene* scene;
+    QGraphicsPixmapItem* pixmapItem;
     QPoint lastMousePos;
     bool dragging;
     int cntScale;
     int minScale;
     int maxScale;
 
-    virtual void adjustContentToFit() = 0;
+    void adjustMediaToFit();
 }; 

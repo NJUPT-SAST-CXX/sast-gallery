@@ -1,5 +1,6 @@
 #pragma once
 
+#include "component/AbstractMediaViewer.h"
 #include "component/FileInfoWidget.h"
 #include "component/ImageViewer.h"
 #include "component/VideoViewer.h"
@@ -43,9 +44,9 @@ private:
     ElaIconButton* maximizeButton{};
     ElaIconButton* zoom2originalButton{};
     ElaText* fileInfoBriefText{};
-    QWidget* contentWidget{nullptr}; // Points to either imageViewer or videoViewer
-    ImageViewer* imageViewer;
-    VideoViewer* videoViewer;
+    AbstractMediaViewer* abstractMediaViewer{nullptr}; // TODO: nullptr or not?
+    // ImageViewer* imageViewer;
+    // VideoViewer* videoViewer;
     FileInfoWidget* fileInfoWidget{};
 
     MediaViewerDelegate* delegate{};

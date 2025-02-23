@@ -62,9 +62,9 @@ void MediaViewer::initContent() {
     Media media(filePath);
 
     if (media.type == MediaType::Video) {
-        contentWidget = new VideoViewer(filePath, this);
+        abstractMediaViewer = new VideoViewer(filePath, this);
     } else if (media.type == MediaType::Image) {
-        contentWidget = new ImageViewer(filePath, this);
+        abstractMediaViewer = new ImageViewer(filePath, this);
     }
 
     // file info widget
@@ -72,7 +72,7 @@ void MediaViewer::initContent() {
     fileInfoWidget->loadInfo(delegate->getFilePath());
     fileInfoWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     fileInfoWidget->setFixedWidth(0);
-    fileInfoWidget->setMessageBarParent(contentWidget);
+    fileInfoWidget->setMessageBarParent(abstractMediaViewer);
     fileInfoWidget->hide();
 
     // Create buttons
@@ -133,7 +133,7 @@ void MediaViewer::initContent() {
     operationLayout->addWidget(maximizeButton);
     operationLayout->addWidget(zoom2originalButton);
 
-    mainMiddleAreaLayout->addWidget(contentWidget);
+    mainMiddleAreaLayout->addWidget(abstractMediaViewer);
     mainMiddleAreaLayout->addLayout(operationLayout);
 
     middleAreaLayout->addLayout(mainMiddleAreaLayout);
@@ -162,4 +162,14 @@ void MediaViewer::initContent() {
     connect(zoomSlider, &QSlider::valueChanged, this, [=](int value) {
         zoomSliderToolTip->setToolTip(QString("%1%").arg(value));
     });
+
+    // Disable actions and buttons for specific media types
+    if (media.type == MediaType::Video) {
+        rotateAction->setEnabled(false);
+        printAction->setEnabled(false);
+        zoomInButton->setEnabled(false);
+        zoomOutButton->setEnabled(false);
+        zoomSlider->setEnabled(false);
+    } else if (media.type == MediaType::Image) {
+    }
 }

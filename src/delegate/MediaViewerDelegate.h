@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../model/Media.h"
 #include <QAbstractItemModel>
 #include <QImage>
 #include <QPersistentModelIndex>
@@ -24,11 +25,11 @@ public:
 
 signals:
     void scaledByWheel();
-    void imageChanged(bool fadeAnimation = true);
+    void mediaChanged(bool fadeAnimation = true);
 
 public slots:
     void onModelRowsToBeRemoved(const QModelIndex& parent, int first, int last);
-    void onImageChanged(bool fadeAnimation = true);
+    void onMediaChanged(bool fadeAnimation = true);
     void onWheelScrolled(int delta);
     bool copyImageToClipboard();
     void openImageFileDialog();
@@ -36,10 +37,10 @@ public slots:
     void onLikeButtonClicked();
     void onFileInfoClicked();
     void adaptiveResize();
-    void deleteImage();
-    void prevImage();
-    void nextImage();
-    void rotateImage();
+    void deleteMedia();
+    void prevMedia();
+    void nextMedia();
+    void rotateMedia();
     void openInFileExplorer();
 
 private:
@@ -52,6 +53,8 @@ private:
 
     bool loadImage(const QString& path, bool fadeAnimation = true);
     bool loadImage(const QImage& image, bool fadeAnimation = true);
+    bool loadVideo(const QString& path, bool fadeAnimation = true);
+    bool loadMedia(const QString& path, bool fadeAnimation = true);
     void scaleTo(int percent);
     [[nodiscard]] int getScale() const;
     void updateLikeButtonState();
