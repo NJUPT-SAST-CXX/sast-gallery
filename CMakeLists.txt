@@ -41,13 +41,9 @@ if(APPLE)
         MACOSX_PACKAGE_LOCATION Resources)
 endif()
 
-set(Qt6_DIR "/Users/lizengxin/Qt/6.8.2/macos/lib/cmake/Qt6")
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia MultimediaWidgets Concurrent)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
-find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia MultimediaWidgets Concurrent Core)
-
-message(STATUS "Qt6_DIR: ${Qt6_DIR}")
-message(STATUS "Qt6 Widgets include dirs: ${Qt6Widgets_INCLUDE_DIRS}")
 
 file(GLOB_RECURSE PROJECT_SOURCES
     src/*.cpp
@@ -84,7 +80,7 @@ target_link_libraries(sast-gallery PRIVATE
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.
-if(Qt6_VERSION_STRING VERSION_LESS 6.1.0)
+if(${QT_VERSION} VERSION_LESS 6.1.0)
     set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.sast-gallery)
 endif()
 set_target_properties(sast-gallery PROPERTIES
