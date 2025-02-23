@@ -46,7 +46,7 @@ private:
     QString filepath;
     MediaViewer* view;
     QVBoxLayout* layout;
-
+    void saveFavoriteStates();
     bool loadImage(const QString& path, bool fadeAnimation = true);
     bool loadImage(const QImage& image, bool fadeAnimation = true);
     void scaleTo(int percent);

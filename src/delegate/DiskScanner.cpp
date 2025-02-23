@@ -143,3 +143,13 @@ DiskScanner::DiffResult DiskScanner::diff(const QStringList& oldv, const QString
     }();
     return res;
 }
+
+void DiskScanner::xr(QFileInfoList entryInfoList){
+    for (auto& entry : entryInfoList){
+        QString filePath = entry.absoluteFilePath();
+        QDateTime lastModified = entry.lastModified();
+
+
+            lastModifieded[filePath]=lastModified;
+            };
+}

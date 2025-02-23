@@ -68,7 +68,18 @@ void MediaViewerDelegate::initConnections() {
             &MediaViewerDelegate::saveImageFileDialog);
 
     //TODO(must): implement the openInFileExplorer functionality
-    //connect(openInFileExplorerAction,......)
+
+    connect(view->openInFileExplorerAction,
+            &QAction::triggered,
+            this,
+            [=,this]{
+                // QFileInfo fileInfo(filepath);
+                // QString directory = fileInfo.absolutePath();
+                QProcess::startDetached("explorer", QStringList() << "/select," << QDir::toNativeSeparators(filepath));
+
+
+            }
+);
 
     connect(view->rotateAction, &QAction::triggered, this, &MediaViewerDelegate::rotateImage);
 
@@ -86,9 +97,15 @@ void MediaViewerDelegate::initConnections() {
 
     connect(view->nextAction, &QAction::triggered, this, &MediaViewerDelegate::nextImage);
 
-    connect(view->likeButton, &ElaIconButton::clicked, this, [=]() {
+    connect(view->likeButton, &ElaIconButton::clicked, this, [=, this]() {
         //TODO(must): implement the like functionality
         // add the image to Favorite Page
+        auto index = mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite);
+        if (mediaListModel->data(index, Qt::DisplayRole).toBool()) {
+            mediaListModel->setData(index, false, Qt::EditRole);
+        } else {
+            mediaListModel->setData(index, true, Qt::EditRole);
+        }
     });
 
     connect(view->fileInfoButton,
@@ -313,7 +330,6 @@ void MediaViewerDelegate::deleteImage() {
         }
     }
 }
-
 void MediaViewerDelegate::prevImage() {
     if (mediaIndex.row() > 0) {
         mediaIndex = mediaListModel->index(mediaIndex.row() - 1, MediaListModel::Path);

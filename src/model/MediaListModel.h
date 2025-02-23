@@ -6,12 +6,18 @@
 
 // model for storing media property on disk, not including the image content
 // TODO: load & save favorite data from disk
+
+
+
+
+
 class MediaListModel : public QAbstractTableModel {
     Q_OBJECT
-
     QList<QString> path;
     QList<QDateTime> lastModifiedTime;
     QSet<QString> isFavorite;
+    void load();
+    void save();
 
 public:
     MediaListModel(QObject* parent = nullptr);

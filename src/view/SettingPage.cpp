@@ -100,12 +100,28 @@ SettingPage::SettingPage(QWidget* parent)
     wheelComboBox->addItem("Switch");
     auto wheelSwitchArea = createScrollPageArea("Wheel Behaviors", wheelComboBox);
     // TODO: implement the rest
-
+    connect(wheelComboBox,
+            QOverload<int>::of(&ElaComboBox::currentIndexChanged),
+            this,
+            [=](int index) {
+            if (index == 0) {
+                settings.setValue("wheelBehavior", 0);
+            } else {
+            settings.setValue("wheelBehavior", 1);
+        }
+    });
     auto deletionSwitchButton = new ElaToggleSwitch(this);
     auto deletionSwitchArea = createScrollPageArea("Ask for deletion permission",
                                                    deletionSwitchButton);
     // TODO: implement the rest
-
+    connect(deletionSwitchButton,
+            &ElaToggleSwitch::toggled,
+            this,
+            [=](bool checked){
+                settings.setValue("confirmDeletion", checked);
+            }
+        );
+    deletionSwitchButton->setIsToggled(settings.value("confirmDeletion").toBool());
     auto centralWidget = new QWidget(this);
     centralWidget->setWindowTitle("Setting");
     auto centerLayout = new QVBoxLayout(centralWidget);

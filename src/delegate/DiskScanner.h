@@ -2,6 +2,7 @@
 #include <QFileSystemWatcher>
 #include <QMap>
 #include <QObject>
+#include <QFileInfo>
 
 // scan&watch media in specific path, and update ImageList
 
@@ -57,6 +58,8 @@ private:
     QStringList pendingCreated, pendingDeleted;
     void submitChange(bool fullScan = false);
 
+    void xr(QFileInfoList entryInfoList);
+    QMap<QString, QDateTime> lastModifieded;
     // QDir name filter
     static const inline QStringList mediaFileFilter = {
         // image, ref: https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types

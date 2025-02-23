@@ -2,7 +2,7 @@
 #include <QDir>
 
 MediaListModel::MediaListModel(QObject* parent)
-    : QAbstractTableModel(parent) {}
+    : QAbstractTableModel(parent) {load();}
 
 MediaListModel::~MediaListModel() {}
 
@@ -13,7 +13,6 @@ int MediaListModel::rowCount(const QModelIndex& parent) const {
 int MediaListModel::columnCount(const QModelIndex& parent) const {
     return 3;
 }
-
 QVariant MediaListModel::data(const QModelIndex& index, int role) const {
     if (!index.isValid() || index.row() >= rowCount() || index.column() >= columnCount()) {
         return {};
@@ -69,9 +68,11 @@ bool MediaListModel::setData(const QModelIndex& index, const QVariant& value, in
         if (value.value<bool>()) {
             isFavorite.insert(path.value(index.row()));
             dataChanged(index, index);
+            save();
         } else {
             isFavorite.remove(path.value(index.row()));
             dataChanged(index, index);
+            save();
         }
     }
     return false;
@@ -111,5 +112,22 @@ void MediaListModel::modifiedEntries(const QStringList& paths) {
         auto row = path.indexOf(filePath);
         lastModifiedTime.replace(row, QFileInfo(filePath).lastModified());
         dataChanged(index(row, Property::LastModifiedTime), index(row, Property::LastModifiedTime));
+    }
+}
+
+void MediaListModel::load(){
+    QFile file("dat.dat");
+    if (file.open(QIODevice::ReadOnly)) {
+        QDataStream in(&file);
+        in >>isFavorite;
+        file.close();
+    }
+}
+void MediaListModel::save() {
+    QFile file("dat.dat");
+    if (file.open(QIODevice::WriteOnly)) {
+        QDataStream out(&file);
+        out << isFavorite;
+        file.close();
     }
 }
