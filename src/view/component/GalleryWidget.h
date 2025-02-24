@@ -37,7 +37,6 @@ public slots:
     void onModelRowsRemoved(const QModelIndex& parent, int first, int last);
 
 private:
-    std::vector<QMetaObject::Connection> connections;
     void initModelSignals();
     void resetPreviewers();
 };
