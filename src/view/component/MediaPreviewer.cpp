@@ -96,7 +96,7 @@ void MediaPreviewer::initMedia() {
             }
         });
         qDebug() << "Video size:" << mediaSize;
-    } else {
+    } else if (media.type == MediaType::Image) {
         mediaSize = QImageReader(media.path).size();
         qDebug() << "Image size:" << mediaSize;
     }
