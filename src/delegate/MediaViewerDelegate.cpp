@@ -116,18 +116,18 @@ void MediaViewerDelegate::initConnections() {
                                 !currentState,
                                 Qt::EditRole);
         updateLikeButtonState();
-        if (MediaListModel::IsFavorite) {
-            ElaMessageBar::error(ElaMessageBarType::Bottom,
-                                 "Removed from favorites",
-                                 nullptr,
-                                 2000,
-                                 view->imageViewer);
-        } else {
+        if (!currentState) {
             ElaMessageBar::success(ElaMessageBarType::Bottom,
                                    "Added to favorites",
                                    nullptr,
                                    2000,
                                    view->imageViewer);
+        } else {
+            ElaMessageBar::error(ElaMessageBarType::Bottom,
+                                 "Removed from favorites",
+                                 nullptr,
+                                 2000,
+                                 view->imageViewer);
         }
     }); //点赞功能
 

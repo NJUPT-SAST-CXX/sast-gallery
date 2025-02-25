@@ -117,9 +117,7 @@ void MediaPreviewer::mouseReleaseEvent(QMouseEvent* event) {
 void MediaPreviewer::mouseDoubleClickEvent(QMouseEvent* event) {
     QLabel::mouseDoubleClickEvent(event);
 
-    QAbstractItemModel* model = this->model;
-    QModelIndex index = model->index(rowIndex, 0);
-    MediaViewer* viewer = new MediaViewer(model, rowIndex, static_cast<QWidget*>(parent()));
+    MediaViewer* viewer = new MediaViewer(model, rowIndex, nullptr);
     viewer->setAttribute(Qt::WA_DeleteOnClose);
     viewer->setFilePath(filepath);
     viewer->show();
