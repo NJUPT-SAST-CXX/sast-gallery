@@ -92,11 +92,8 @@ void MediaViewerDelegate::initConnections() {
     connect(view->likeButton, &ElaIconButton::clicked, this, [=, this]() {
         //TODO(must): implement the like functionality
         auto index = mediaListModel->index(mediaIndex.row(), MediaListModel::IsFavorite);
-        if (mediaListModel->data(index, Qt::DisplayRole).toBool()) {
-            mediaListModel->setData(index, false, Qt::EditRole);
-        } else {
-            mediaListModel->setData(index, true, Qt::EditRole);
-        }
+        bool check = mediaListModel->data(index, Qt::DisplayRole).toBool();
+        mediaListModel->setData(index, !check, Qt::EditRole);
     });
 
     connect(view->fileInfoButton,
